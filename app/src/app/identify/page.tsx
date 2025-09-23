@@ -121,7 +121,7 @@ export default function IdentifyPage() {
         noValidate
       >
         <fieldset
-          className={`flex flex-col items-center justify-center gap-4 rounded-2xl px-6 py-8 text-center transition-colors ${
+          className={`flex w-full flex-col items-center justify-center gap-4 rounded-2xl px-6 py-8 text-center transition-colors ${
             preview ? "bg-white" : "bg-sky-50/60"
           }`}
         >
@@ -160,7 +160,7 @@ export default function IdentifyPage() {
             type="button"
             onClick={handleOpenCamera}
             disabled={isLoading}
-            className="flex h-12 items-center justify-center gap-2 rounded-full bg-sky-600 text-white shadow-md transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-sky-600 text-white shadow-md transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {isLoading ? (
               "正在识别..."
