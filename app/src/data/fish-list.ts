@@ -50,8 +50,8 @@ export const fishList: FishEntry[] = [
   },
   {
     id: "makouyu",
-    name_cn: "大口鲌",
-    alias: ["马口鱼"],
+    name_cn: "马口鱼",
+    alias: ["大口扒"],
     name_lat: "Opsariichthys bidens",
     family: "鲤科",
     length: "20cm",
@@ -86,7 +86,7 @@ export const fishList: FishEntry[] = [
   },
   {
     id: "ganzui",
-    name_cn: "翘嘴红鲌",
+    name_cn: "翘嘴",
     alias: ["红鳍鲌"],
     name_lat: "Chanosichthys sp.",
     family: "鲌亚科",
