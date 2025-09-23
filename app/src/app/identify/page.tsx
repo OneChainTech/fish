@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { FormEvent, useRef, useState } from "react";
 import { RecognitionSummary } from "@/components/identify/RecognitionSummary";
-import { CameraIcon, PhotoIcon } from "@/components/ui/IconSet";
+import { CameraIcon } from "@/components/ui/IconSet";
 
 type RecognitionResponse = {
   status: string;
@@ -17,7 +17,6 @@ type RecognitionResponse = {
 
 export default function IdentifyPage() {
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,15 +49,11 @@ export default function IdentifyPage() {
     cameraInputRef.current?.click();
   };
 
-  const handleOpenFilePicker = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!preview || !mimeType) {
-      setError("请先拍照或上传图片。");
+      setError("请先拍摄照片或选择图片。");
       return;
     }
     try {
@@ -68,7 +63,7 @@ export default function IdentifyPage() {
 
       const base64 = preview.split(",")[1];
       if (!base64) {
-        setError("图片数据无效，请重新上传。");
+        setError("图片数据无效，请重新拍摄或选择。");
         setIsLoading(false);
         return;
       }
@@ -106,7 +101,7 @@ export default function IdentifyPage() {
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold">鱼类识别</h1>
         <p className="text-xs text-slate-500">
-          拍照或上传清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
+          拍摄清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
         </p>
       </header>
       <form
@@ -115,7 +110,7 @@ export default function IdentifyPage() {
         noValidate
       >
         <fieldset className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-sky-200 bg-sky-50/60 px-4 py-6 text-center">
-          <legend className="sr-only">上传或拍摄鱼类照片</legend>
+          <legend className="sr-only">拍摄鱼类照片</legend>
           {preview ? (
             <div className="relative h-48 w-full overflow-hidden rounded-2xl">
               <Image
@@ -133,7 +128,7 @@ export default function IdentifyPage() {
             </div>
           )}
           {!preview && (
-            <p className="text-sm text-sky-600/80">轻点按钮拍摄或上传</p>
+            <p className="text-sm text-sky-600/80">轻点按钮拍摄</p>
           )}
           <div className="flex w-full flex-col gap-3 sm:flex-row">
             <button
@@ -144,27 +139,12 @@ export default function IdentifyPage() {
               <CameraIcon className="h-4 w-4" />
               拍照识别
             </button>
-            <button
-              onClick={handleOpenFilePicker}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-sky-200 px-5 py-3 text-sm font-medium text-sky-600 transition active:scale-[0.98] sm:text-base"
-              type="button"
-            >
-              <PhotoIcon className="h-4 w-4" />
-              上传图片
-            </button>
           </div>
           <input
             ref={cameraInputRef}
             type="file"
             accept="image/*"
             capture="environment"
-            className="hidden"
-            onChange={(event) => handleFileSelect(event.target.files?.[0] ?? null)}
-          />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
             className="hidden"
             onChange={(event) => handleFileSelect(event.target.files?.[0] ?? null)}
           />
