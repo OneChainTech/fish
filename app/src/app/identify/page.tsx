@@ -100,7 +100,13 @@ export default function IdentifyPage() {
   };
 
   return (
-    <section className="flex flex-1 flex-col gap-5">
+    <section className="flex flex-1 flex-col gap-5 pb-4">
+      <header className="space-y-2">
+        <h1 className="text-2xl font-semibold">鱼类识别</h1>
+        <p className="text-xs text-slate-500">
+          拍照或上传清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
+        </p>
+      </header>
       <div className="flex flex-col gap-4 rounded-3xl border border-white/60 bg-white/90 p-5 shadow-lg shadow-sky-100/60 backdrop-blur">
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-sky-200 bg-sky-50/60 px-4 py-6 text-center">
           {preview ? (

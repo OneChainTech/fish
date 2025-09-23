@@ -11,12 +11,13 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const resolvedPath = !pathname || pathname === "/" ? "/identify" : pathname;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200/80 bg-white/90 backdrop-blur-sm md:hidden">
       <ul className="mx-auto flex max-w-md items-center justify-around px-6 py-2">
         {navItems.map((item) => {
-          const active = pathname?.startsWith(item.href);
+          const active = resolvedPath.startsWith(item.href);
           return (
             <li key={item.href}>
               <Link
@@ -27,6 +28,7 @@ export function BottomNav() {
                     ? "text-sky-600"
                     : "text-neutral-500 hover:text-neutral-700"
                 )}
+                aria-current={active ? "page" : undefined}
               >
                 <span className="text-base">{item.label}</span>
                 <span
