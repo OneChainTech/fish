@@ -40,10 +40,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "rounded-full px-3 py-1.5 transition",
+                    "rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200",
                     active
-                      ? "bg-sky-100 text-sky-700"
-                      : "text-slate-500 hover:bg-sky-100 hover:text-sky-700"
+                      ? "bg-gradient-to-r from-sky-500/10 via-sky-500/20 to-sky-500/10 text-sky-700 shadow-[0_12px_30px_-22px_rgba(14,165,233,0.8)] scale-[1.04]"
+                      : "text-slate-500 hover:bg-sky-500/10 hover:text-sky-700 hover:shadow-[0_10px_26px_-24px_rgba(14,165,233,0.85)] hover:scale-[1.03]"
                   )}
                   aria-current={active ? "page" : undefined}
                 >
