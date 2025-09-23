@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { RecognitionSummary } from "@/components/identify/RecognitionSummary";
 import { CameraIcon, PhotoIcon } from "@/components/ui/IconSet";
 
@@ -54,7 +54,9 @@ export default function IdentifyPage() {
     fileInputRef.current?.click();
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     if (!preview || !mimeType) {
       setError("请先拍照或上传图片。");
       return;
@@ -99,22 +101,21 @@ export default function IdentifyPage() {
     }
   };
 
-  const tips = [
-    "保持光线充足并尽量正面拍摄，让整条鱼清晰可见。",
-    "避免背景杂乱或多条鱼同框，识别会更准确。",
-    "识别成功后会自动同步至我的图鉴收藏。",
-  ];
-
   return (
-    <section className="flex flex-1 flex-col gap-5 pb-4">
+    <section className="flex flex-1 flex-col gap-6 pb-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold">鱼类识别</h1>
         <p className="text-xs text-slate-500">
           拍照或上传清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
         </p>
       </header>
-      <div className="flex flex-col gap-4 rounded-3xl border border-white/60 bg-white/90 p-5 shadow-lg shadow-sky-100/60 backdrop-blur">
-        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-sky-200 bg-sky-50/60 px-4 py-6 text-center">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 rounded-3xl border border-white/60 bg-white/90 p-5 shadow-lg shadow-sky-100/60 backdrop-blur"
+        noValidate
+      >
+        <fieldset className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-sky-200 bg-sky-50/60 px-4 py-6 text-center">
+          <legend className="sr-only">上传或拍摄鱼类照片</legend>
           {preview ? (
             <div className="relative h-48 w-full overflow-hidden rounded-2xl">
               <Image
@@ -167,31 +168,26 @@ export default function IdentifyPage() {
             className="hidden"
             onChange={(event) => handleFileSelect(event.target.files?.[0] ?? null)}
           />
+        </fieldset>
+
+        <div className="flex flex-col gap-3">
+          <button
+            type="submit"
+            disabled={isLoading || !preview}
+            className="flex h-12 items-center justify-center rounded-full bg-sky-600 text-white shadow-md transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {isLoading ? "正在识别..." : "开始识别"}
+          </button>
+          {error && (
+            <div
+              role="alert"
+              className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600"
+            >
+              {error}
+            </div>
+          )}
         </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading || !preview}
-          className="flex h-12 items-center justify-center rounded-full bg-sky-600 text-white shadow-md transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
-        >
-          {isLoading ? "正在识别..." : "开始识别"}
-        </button>
-
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-      </div>
-
-      <div className="grid gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 p-4 text-xs text-sky-700 sm:grid-cols-3">
-        {tips.map((tip) => (
-          <div key={tip} className="flex items-start gap-2">
-            <span className="mt-1.5 inline-flex h-2 w-2 shrink-0 rounded-full bg-sky-500" aria-hidden="true" />
-            <p className="leading-relaxed">{tip}</p>
-          </div>
-        ))}
-      </div>
+      </form>
 
       <RecognitionSummary result={result} />
     </section>
