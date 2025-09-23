@@ -43,13 +43,19 @@ export default function EncyclopediaPage() {
                 collected ? "border-sky-200" : "border-slate-200"
               }`}
             >
-              <div className="relative aspect-[3/4] overflow-hidden">
+              <div
+                className={`relative flex aspect-[3/4] items-center justify-center overflow-hidden bg-slate-50 ${
+                  collected ? "" : "bg-slate-100"
+                }`}
+              >
                 <Image
                   src={fish.image}
                   alt={fish.name_cn}
                   fill
                   sizes="(max-width: 768px) 50vw, 33vw"
-                  className={`object-cover transition ${collected ? "" : "opacity-45"}`}
+                  className={`object-contain transition duration-300 ${
+                    collected ? "" : "opacity-45"
+                  }`}
                 />
                 {!collected && <div className="absolute inset-0 bg-slate-900/10" />}
                 <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[11px] font-medium text-slate-600">
