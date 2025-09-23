@@ -177,22 +177,20 @@ export default function IdentifyPage() {
           {isLoading ? "正在识别..." : "开始识别"}
         </button>
 
-        <div className="grid gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 p-4 text-xs text-sky-700 sm:grid-cols-3">
-          {tips.map((tip, index) => (
-            <div key={tip} className="flex items-start gap-2">
-              <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/80 text-[11px] font-semibold text-sky-600 shadow-sm">
-                {index + 1}
-              </span>
-              <p className="leading-relaxed">{tip}</p>
-            </div>
-          ))}
-        </div>
-
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
             {error}
           </div>
         )}
+      </div>
+
+      <div className="grid gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 p-4 text-xs text-sky-700 sm:grid-cols-3">
+        {tips.map((tip) => (
+          <div key={tip} className="flex items-start gap-2">
+            <span className="mt-1.5 inline-flex h-2 w-2 shrink-0 rounded-full bg-sky-500" aria-hidden="true" />
+            <p className="leading-relaxed">{tip}</p>
+          </div>
+        ))}
       </div>
 
       <RecognitionSummary result={result} />
