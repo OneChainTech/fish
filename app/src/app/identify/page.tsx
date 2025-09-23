@@ -99,6 +99,12 @@ export default function IdentifyPage() {
     }
   };
 
+  const tips = [
+    "保持光线充足并尽量正面拍摄，让整条鱼清晰可见。",
+    "避免背景杂乱或多条鱼同框，识别会更准确。",
+    "识别成功后会自动同步至我的图鉴收藏。",
+  ];
+
   return (
     <section className="flex flex-1 flex-col gap-5 pb-4">
       <header className="space-y-2">
@@ -170,6 +176,17 @@ export default function IdentifyPage() {
         >
           {isLoading ? "正在识别..." : "开始识别"}
         </button>
+
+        <div className="grid gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 p-4 text-xs text-sky-700 sm:grid-cols-3">
+          {tips.map((tip, index) => (
+            <div key={tip} className="flex items-start gap-2">
+              <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/80 text-[11px] font-semibold text-sky-600 shadow-sm">
+                {index + 1}
+              </span>
+              <p className="leading-relaxed">{tip}</p>
+            </div>
+          ))}
+        </div>
 
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
