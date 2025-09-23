@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { findFishByName } from "@/lib/fish-utils";
 import { useFishStore } from "@/store/useFishStore";
+import { ConfettiCelebration } from "@/components/identify/ConfettiCelebration";
 
 type Props = {
   result: {
@@ -21,6 +22,8 @@ const UNLOCK_THRESHOLD = 0.6;
 export function RecognitionSummary({ result }: Props) {
   const setCurrentRecognition = useFishStore((state) => state.setCurrentRecognition);
   const unlockFish = useFishStore((state) => state.unlockFish);
+  const collectedFishIds = useFishStore((state) => state.collectedFishIds);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     if (!result || result.status !== "ok" || !result.name_cn) {
@@ -50,6 +53,18 @@ export function RecognitionSummary({ result }: Props) {
     return findFishByName(result.name_cn);
   }, [result]);
 
+  const alreadyCollected = match ? collectedFishIds.includes(match.id) : false;
+
+  useEffect(() => {
+    if (!result) {
+      setShowCelebration(false);
+      return;
+    }
+    if (match && result.status === "ok" && (result.confidence ?? 0) >= UNLOCK_THRESHOLD && !alreadyCollected) {
+      setShowCelebration(true);
+    }
+  }, [result, match, alreadyCollected]);
+
   if (!result) {
     return null;
   }
@@ -69,6 +84,9 @@ export function RecognitionSummary({ result }: Props) {
 
   return (
     <div className="space-y-4 rounded-3xl border border-sky-200 bg-white p-6 shadow-sm">
+      {showCelebration && (
+        <ConfettiCelebration onComplete={() => setShowCelebration(false)} />
+      )}
       <div className="flex flex-col gap-1">
         <span className="text-xs font-semibold text-sky-500">识别结果</span>
         <h2 className="text-2xl font-semibold text-slate-900">{result.name_cn}</h2>
