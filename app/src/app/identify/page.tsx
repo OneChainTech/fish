@@ -120,7 +120,11 @@ export default function IdentifyPage() {
         className="space-y-6 rounded-3xl border border-white/60 bg-white/90 p-5 shadow-lg shadow-sky-100/60 backdrop-blur"
         noValidate
       >
-        <fieldset className="flex flex-col items-center justify-center gap-4 rounded-2xl bg-sky-50/60 px-6 py-8 text-center">
+        <fieldset
+          className={`flex flex-col items-center justify-center gap-4 rounded-2xl px-6 py-8 text-center transition-colors ${
+            preview ? "bg-white" : "bg-sky-50/60"
+          }`}
+        >
           <legend className="sr-only">拍摄鱼类照片</legend>
           {preview ? (
             <div className="relative h-56 w-full overflow-hidden rounded-2xl">
