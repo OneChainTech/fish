@@ -23,57 +23,32 @@ export default function IdentifyPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RecognitionResponse | null>(null);
 
-  const handleFileSelect = async (file: File | null) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("仅支持图片文件，请重新选择。");
-      return;
-    }
-    setError(null);
-    setResult(null);
-    setMimeType(file.type || "image/jpeg");
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setPreview(reader.result);
-      }
-    };
-    reader.onerror = () => {
-      setError("图片读取失败，请重试。");
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleOpenCamera = () => {
-    cameraInputRef.current?.click();
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!preview || !mimeType) {
+  const recognizeImage = async (
+    imageDataUrl: string | null,
+    type: string | null,
+  ) => {
+    if (!imageDataUrl || !type) {
       setError("请先拍摄照片或选择图片。");
       return;
     }
+
+    const base64 = imageDataUrl.split(",")[1];
+    if (!base64) {
+      setError("图片数据无效，请重新拍摄或选择。");
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
       setResult(null);
-
-      const base64 = preview.split(",")[1];
-      if (!base64) {
-        setError("图片数据无效，请重新拍摄或选择。");
-        setIsLoading(false);
-        return;
-      }
 
       const response = await fetch("/api/recognize", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ imageBase64: base64, mimeType }),
+        body: JSON.stringify({ imageBase64: base64, mimeType: type }),
       });
 
       if (!response.ok) {
@@ -81,7 +56,6 @@ export default function IdentifyPage() {
           .json()
           .catch(() => ({ error: "识别失败，请稍后再试。" }));
         setError(message || "识别失败，请稍后再试。");
-        setIsLoading(false);
         return;
       }
 
@@ -94,6 +68,43 @@ export default function IdentifyPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFileSelect = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("仅支持图片文件，请重新选择。");
+      return;
+    }
+    setError(null);
+    setResult(null);
+    const type = file.type || "image/jpeg";
+    setMimeType(type);
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      if (typeof reader.result === "string") {
+        setPreview(reader.result);
+        await recognizeImage(reader.result, type);
+      }
+    };
+    reader.onerror = () => {
+      setError("图片读取失败，请重试。");
+    };
+    reader.readAsDataURL(file);
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = "";
+    }
+  };
+
+  const handleOpenCamera = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    await recognizeImage(preview, mimeType);
   };
 
   return (
@@ -109,10 +120,10 @@ export default function IdentifyPage() {
         className="space-y-6 rounded-3xl border border-white/60 bg-white/90 p-5 shadow-lg shadow-sky-100/60 backdrop-blur"
         noValidate
       >
-        <fieldset className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-sky-200 bg-sky-50/60 px-4 py-6 text-center">
+        <fieldset className="flex flex-col items-center justify-center gap-4 rounded-2xl bg-sky-50/60 px-6 py-8 text-center">
           <legend className="sr-only">拍摄鱼类照片</legend>
           {preview ? (
-            <div className="relative h-48 w-full overflow-hidden rounded-2xl">
+            <div className="relative h-56 w-full overflow-hidden rounded-2xl">
               <Image
                 src={preview}
                 alt="待识别鱼类"
@@ -128,18 +139,8 @@ export default function IdentifyPage() {
             </div>
           )}
           {!preview && (
-            <p className="text-sm text-sky-600/80">轻点按钮拍摄</p>
+            <p className="text-sm text-sky-600/80">拍摄后将自动开始识别</p>
           )}
-          <div className="flex w-full flex-col gap-3 sm:flex-row">
-            <button
-              onClick={handleOpenCamera}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-sky-500 px-5 py-3 text-sm font-medium text-white shadow-sm transition active:scale-[0.98] sm:text-base"
-              type="button"
-            >
-              <CameraIcon className="h-4 w-4" />
-              拍照识别
-            </button>
-          </div>
           <input
             ref={cameraInputRef}
             type="file"
@@ -152,11 +153,19 @@ export default function IdentifyPage() {
 
         <div className="flex flex-col gap-3">
           <button
-            type="submit"
-            disabled={isLoading || !preview}
-            className="flex h-12 items-center justify-center rounded-full bg-sky-600 text-white shadow-md transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
+            type="button"
+            onClick={handleOpenCamera}
+            disabled={isLoading}
+            className="flex h-12 items-center justify-center gap-2 rounded-full bg-sky-600 text-white shadow-md transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            {isLoading ? "正在识别..." : "开始识别"}
+            {isLoading ? (
+              "正在识别..."
+            ) : (
+              <>
+                <CameraIcon className="h-4 w-4" />
+                拍照识别
+              </>
+            )}
           </button>
           {error && (
             <div
