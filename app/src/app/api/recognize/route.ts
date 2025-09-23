@@ -26,14 +26,119 @@ function sanitizeContent(raw: string) {
   return trimmed;
 }
 
+function removeTrailingCommas(json: string) {
+  return json.replace(/,\s*([}\]])/g, "$1");
+}
+
+function normalizeSingleQuotes(json: string) {
+  const replacedSmartQuotes = json
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'");
+  const normalizedKeys = replacedSmartQuotes.replace(
+    /'([^']+)'(\s*:)/g,
+    (_, key: string, suffix: string) => `"${key}"${suffix}`,
+  );
+  return normalizedKeys.replace(/:\s*'([^']*)'/g, (_, value: string) => {
+    const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return `: "${escaped}"`;
+  });
+}
+
 function parseJsonContent(content: string) {
   const cleaned = sanitizeContent(content);
-  try {
-    return JSON.parse(cleaned);
-  } catch (error) {
-    console.error("识别结果解析失败", content, error);
-    throw error;
+  const attempts = [cleaned];
+  const withoutTrailingCommas = removeTrailingCommas(cleaned);
+  if (withoutTrailingCommas !== cleaned) {
+    attempts.push(withoutTrailingCommas);
   }
+  const normalizedQuotes = normalizeSingleQuotes(withoutTrailingCommas);
+  if (!attempts.includes(normalizedQuotes)) {
+    attempts.push(normalizedQuotes);
+  }
+  const doubleQuoted = normalizedQuotes.replace(/'/g, '"');
+  if (!attempts.includes(doubleQuoted)) {
+    attempts.push(doubleQuoted);
+  }
+
+  let lastError: unknown;
+  for (const attempt of attempts) {
+    try {
+      return JSON.parse(attempt);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  console.error("识别结果解析失败", content, lastError);
+  throw lastError ?? new Error("无法解析识别结果");
+}
+
+type RecognitionPayload = {
+  status: string;
+  name_cn?: string;
+  name_lat?: string;
+  family?: string;
+  description?: string;
+  confidence?: number;
+  reason?: string;
+};
+
+function normalizeParsedResult(raw: unknown): RecognitionPayload {
+  if (!raw || typeof raw !== "object") {
+    return {
+      status: "unrecognized",
+      reason: "识别结果格式无效。",
+    };
+  }
+
+  const record = raw as Record<string, unknown>;
+  const statusRaw =
+    typeof record.status === "string" ? record.status.trim() : "unrecognized";
+  const loweredStatus = statusRaw.toLowerCase();
+  const status =
+    loweredStatus === "success" || loweredStatus === "recognized"
+      ? "ok"
+      : loweredStatus === "fail" || loweredStatus === "failed"
+        ? "unrecognized"
+        : loweredStatus;
+
+  const confidenceRaw = record.confidence;
+  let confidence: number | undefined;
+  if (typeof confidenceRaw === "number" && Number.isFinite(confidenceRaw)) {
+    confidence = confidenceRaw;
+  } else if (typeof confidenceRaw === "string") {
+    const cleaned = confidenceRaw.replace(/[^0-9.,-]/g, "");
+    if (cleaned) {
+      const normalized = cleaned.replace(",", ".");
+      let parsed = Number.parseFloat(normalized);
+      if (!Number.isNaN(parsed)) {
+        if (parsed > 1) {
+          parsed = parsed / 100;
+        }
+        parsed = Math.min(Math.max(parsed, 0), 1);
+        confidence = parsed;
+      }
+    }
+  }
+
+  const reason = typeof record.reason === "string" ? record.reason : undefined;
+
+  const normalized: RecognitionPayload = {
+    status,
+    name_cn: typeof record.name_cn === "string" ? record.name_cn : undefined,
+    name_lat: typeof record.name_lat === "string" ? record.name_lat : undefined,
+    family: typeof record.family === "string" ? record.family : undefined,
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    confidence,
+    reason,
+  };
+
+  if (normalized.status !== "ok" && !normalized.reason) {
+    normalized.reason = "未能识别鱼种，请尝试拍摄更清晰的照片。";
+  }
+
+  return normalized;
 }
 
 export async function POST(req: NextRequest) {
@@ -138,11 +243,18 @@ export async function POST(req: NextRequest) {
 
     try {
       const parsed = parseJsonContent(content);
-      return Response.json({ result: parsed });
-    } catch {
+      const normalized = normalizeParsedResult(parsed);
+      return Response.json({ result: normalized });
+    } catch (error) {
+      console.error("识别结果格式错误", error);
       return Response.json(
-        { error: "识别结果格式错误" },
-        { status: 500 }
+        {
+          result: {
+            status: "unrecognized",
+            reason: "识别结果解析失败，请稍后重试或上传更清晰的照片。",
+          },
+        },
+        { status: 200 }
       );
     }
   } catch (error) {
