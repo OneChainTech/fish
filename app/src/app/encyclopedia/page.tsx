@@ -76,16 +76,9 @@ export default function EncyclopediaPage() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center justify-between px-3 py-3">
-                <div>
-                  <h2 className="text-base font-medium text-slate-900">{fish.name_cn}</h2>
-                  <p className="text-xs text-slate-500">{fish.name_lat}</p>
-                </div>
-                {collected && (
-                  <span className="inline-flex h-7 items-center rounded-full bg-sky-500 px-3 text-xs font-semibold text-white">
-                    已解锁
-                  </span>
-                )}
+              <div className="px-3 py-3">
+                <h2 className="text-base font-medium text-slate-900">{fish.name_cn}</h2>
+                <p className="text-xs text-slate-500">{fish.name_lat}</p>
               </div>
             </article>
           );
