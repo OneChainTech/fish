@@ -197,6 +197,10 @@ export function ConfettiCelebration({ duration = 3200, onComplete }: Props) {
 
   return (
     <div className="confetti-container">
+      {/* burst ring and flash overlay for stronger visual impact */}
+      <span className="celebration-burst" />
+      <span className="celebration-flash" />
+      {/** base confetti */}
       {CONFETTI_PRESET.map((piece) => {
         const style: ConfettiStyle = {
           backgroundColor: piece.color,
@@ -209,7 +213,26 @@ export function ConfettiCelebration({ duration = 3200, onComplete }: Props) {
           "--confetti-y": piece.y,
           "--confetti-rotate": piece.rotate,
         };
-        return <span key={piece.id} className="confetti-piece" style={style} />;
+        return <span key={`base-${piece.id}`} className="confetti-piece" style={style} />;
+      })}
+      {/** mirrored/confetti clones for higher density */}
+      {CONFETTI_PRESET.map((piece) => {
+        const mirrored: ConfettiStyle = {
+          backgroundColor: piece.color,
+          animationDelay: `${(piece.delay ?? 0) + 0.05}s`,
+          animationDuration: `${(piece.duration ?? 2.6) + 0.2}s`,
+          width: Math.max(6, (piece.width ?? 8) - 1),
+          height: Math.max(12, (piece.height ?? 16) - 1),
+          "--confetti-start": piece.start.startsWith("-")
+            ? piece.start.replace("-", "")
+            : `-${piece.start}`,
+          "--confetti-x": piece.x.startsWith("-")
+            ? piece.x.replace("-", "")
+            : `-${piece.x}`,
+          "--confetti-y": piece.y,
+          "--confetti-rotate": piece.rotate,
+        };
+        return <span key={`mirror-${piece.id}`} className="confetti-piece confetti-piece--soft" style={mirrored} />;
       })}
     </div>
   );

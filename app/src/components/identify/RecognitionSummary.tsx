@@ -80,6 +80,12 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
 
     if (justUnlocked) {
       setShowCelebration(true);
+      // mobile light haptic
+      try {
+        if (typeof window !== "undefined" && (navigator as any)?.vibrate) {
+          (navigator as any).vibrate(18);
+        }
+      } catch {}
     } else {
       setShowCelebration(false);
     }
@@ -110,7 +116,7 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
   const unlocked = match && (result.confidence ?? 0) >= UNLOCK_THRESHOLD;
 
   return (
-    <div className="relative space-y-5 rounded-3xl border border-sky-200 bg-white p-6 shadow-sm">
+    <div className={`relative space-y-5 rounded-3xl border border-sky-200 bg-white p-6 shadow-sm ${justUnlocked ? "animate-card-pop" : ""}`}>
       {showCelebration && (
         <ConfettiCelebration onComplete={() => setShowCelebration(false)} />
       )}
@@ -125,9 +131,10 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
       {match ? (
         unlocked ? (
           justUnlocked ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
               <h3 className="font-semibold">成功解锁：{match.name_cn}</h3>
               <p className="mt-1">已同步至图鉴，快去查看详细插画与资料吧！</p>
+              <span className="pointer-events-none absolute inset-0 animate-success-sheen bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.9),transparent)] opacity-0" />
             </div>
           ) : null
         ) : (

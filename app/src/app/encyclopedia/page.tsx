@@ -5,11 +5,18 @@ import { useMemo, useState } from "react";
 import { fishList, type FishEntry } from "@/data/fish-list";
 import { useFishStore } from "@/store/useFishStore";
 import { FishDetailSheet } from "@/components/encyclopedia/FishDetailSheet";
+import { cn } from "@/lib/utils";
 
 const rarityTag: Record<FishEntry["rarity"], string> = {
   common: "常见",
   uncommon: "较稀有",
   rare: "稀有",
+};
+
+const rarityCardFrame: Record<FishEntry["rarity"], string> = {
+  common: "border border-slate-200 shadow-sm",
+  uncommon: "border-2 border-amber-300 shadow-[0_6px_18px_rgba(253,230,138,0.35)]",
+  rare: "border-[3px] border-fuchsia-400 shadow-[0_10px_26px_rgba(217,70,239,0.45)]",
 };
 
 export default function EncyclopediaPage() {
@@ -39,9 +46,11 @@ export default function EncyclopediaPage() {
             <article
               key={fish.id}
               onClick={() => setSelectedFish(fish)}
-              className={`group flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-white/90 shadow-sm transition hover:-translate-y-1 hover:shadow-md ${
-                collected ? "border-sky-200" : "border-slate-200"
-              }`}
+              className={cn(
+                "group flex cursor-pointer flex-col overflow-hidden rounded-3xl bg-white/90 transition hover:-translate-y-1",
+                rarityCardFrame[fish.rarity],
+                collected ? "hover:shadow-xl" : "border-opacity-70 bg-white/70"
+              )}
             >
               <div
                 className={`relative flex aspect-[3/4] items-center justify-center overflow-hidden bg-slate-50 ${
