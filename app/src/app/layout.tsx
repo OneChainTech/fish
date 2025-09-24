@@ -9,7 +9,7 @@ const notoSans = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: "鱼类识别图鉴",
+  title: "鱼眼识界",
   description: "拍照识鱼、解锁专属图鉴进度的移动端应用",
 };
 
