@@ -80,12 +80,15 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
 
     if (justUnlocked) {
       setShowCelebration(true);
-      // mobile light haptic
-      try {
-        if (typeof window !== "undefined" && (navigator as any)?.vibrate) {
-          (navigator as any).vibrate(18);
-        }
-      } catch {}
+      // mobile light haptic (typed refinement, no any)
+      if (typeof window !== "undefined" && "vibrate" in navigator) {
+        const nav = navigator as Navigator & {
+          vibrate?: (pattern: number | number[]) => boolean;
+        };
+        try {
+          nav.vibrate?.(18);
+        } catch {}
+      }
     } else {
       setShowCelebration(false);
     }
