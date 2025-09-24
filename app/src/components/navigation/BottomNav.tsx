@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/identify", label: "识别" },
   { href: "/encyclopedia", label: "图鉴" },
+  { href: "/identify", label: "识别" },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
-  const resolvedPath = !pathname || pathname === "/" ? "/identify" : pathname;
+  const resolvedPath = !pathname || pathname === "/" ? "/encyclopedia" : pathname;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200/80 bg-white/90 backdrop-blur-sm md:hidden">

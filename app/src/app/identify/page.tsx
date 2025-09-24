@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { RecognitionSummary } from "@/components/identify/RecognitionSummary";
 import { CameraIcon } from "@/components/ui/IconSet";
+import { fishingTips } from "@/data/fishing-tips";
 
 type RecognitionResponse = {
   status: string;
@@ -22,6 +23,35 @@ export default function IdentifyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RecognitionResponse | null>(null);
+  const [currentTip, setCurrentTip] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setCurrentTip(null);
+      return;
+    }
+
+    let previousTip: string | null = null;
+
+    const pickTip = () => {
+      if (fishingTips.length === 0) return;
+      let nextTip = fishingTips[Math.floor(Math.random() * fishingTips.length)];
+      if (fishingTips.length > 1) {
+        while (nextTip === previousTip) {
+          nextTip = fishingTips[Math.floor(Math.random() * fishingTips.length)];
+        }
+      }
+      previousTip = nextTip;
+      setCurrentTip(nextTip);
+    };
+
+    pickTip();
+    const interval = window.setInterval(pickTip, 2000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [isLoading]);
 
   const recognizeImage = async (
     imageDataUrl: string | null,
@@ -182,7 +212,7 @@ export default function IdentifyPage() {
         </div>
       </form>
 
-      <RecognitionSummary result={result} />
+      <RecognitionSummary result={result} isLoading={isLoading} pendingTip={currentTip} />
     </section>
   );
 }

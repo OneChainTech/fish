@@ -9,8 +9,8 @@ import { useCollectionSync } from "@/hooks/useCollectionSync";
 import { cn } from "@/lib/utils";
 
 const desktopNav = [
-  { href: "/identify", label: "识别" },
   { href: "/encyclopedia", label: "图鉴" },
+  { href: "/identify", label: "识别" },
 ];
 
 function CollectionSyncGate() {
@@ -20,7 +20,7 @@ function CollectionSyncGate() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const resolvedPath = !pathname || pathname === "/" ? "/identify" : pathname;
+  const resolvedPath = !pathname || pathname === "/" ? "/encyclopedia" : pathname;
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-slate-100 via-white to-slate-100 text-slate-900">

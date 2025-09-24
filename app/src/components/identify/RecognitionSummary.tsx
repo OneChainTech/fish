@@ -15,11 +15,13 @@ type Props = {
     confidence?: number;
     reason?: string;
   } | null;
+  isLoading: boolean;
+  pendingTip: string | null;
 };
 
 const UNLOCK_THRESHOLD = 0.6;
 
-export function RecognitionSummary({ result }: Props) {
+export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
   const setCurrentRecognition = useFishStore((state) => state.setCurrentRecognition);
   const unlockFish = useFishStore((state) => state.unlockFish);
   const collectedFishIds = useFishStore((state) => state.collectedFishIds);
@@ -84,6 +86,15 @@ export function RecognitionSummary({ result }: Props) {
   }, [result, justUnlocked]);
 
   if (!result) {
+    if (isLoading && pendingTip) {
+      return (
+        <div className="rounded-3xl border border-sky-100 bg-white/85 p-6 text-sm text-sky-700 shadow-sm">
+          <p className="text-base font-medium leading-relaxed text-sky-600">
+            钓鱼小贴士：{pendingTip}
+          </p>
+        </div>
+      );
+    }
     return null;
   }
 
