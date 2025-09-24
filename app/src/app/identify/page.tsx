@@ -140,7 +140,7 @@ export default function IdentifyPage() {
   return (
     <section className="flex flex-1 flex-col gap-6 pb-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">鱼类识别</h1>
+        <h1 className="text-2xl font-semibold">鱼眼识界</h1>
         <p className="text-xs text-slate-500">
           拍摄清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
         </p>
@@ -151,29 +151,27 @@ export default function IdentifyPage() {
         noValidate
       >
         <fieldset
-          className={`flex w-full flex-col items-center justify-center gap-4 rounded-2xl px-6 py-8 text-center transition-colors ${
+          className={`relative h-56 w-full overflow-hidden rounded-2xl text-center transition-colors ${
             preview ? "bg-white" : "bg-sky-50/60"
           }`}
         >
           <legend className="sr-only">拍摄鱼类照片</legend>
           {preview ? (
-            <div className="relative h-56 w-full overflow-hidden rounded-2xl">
-              <Image
-                src={preview}
-                alt="待识别鱼类"
-                fill
-                sizes="(max-width: 768px) 100vw, 400px"
-                className="object-cover"
-                unoptimized
-              />
-            </div>
+            <Image
+              src={preview}
+              alt="待识别鱼类"
+              fill
+              sizes="(max-width: 768px) 100vw, 400px"
+              className="object-cover"
+              unoptimized
+            />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-500">
-              <CameraIcon className="h-7 w-7" />
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-6">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-500">
+                <CameraIcon className="h-7 w-7" />
+              </div>
+              <p className="text-sm text-sky-600/80">拍摄后将自动开始识别</p>
             </div>
-          )}
-          {!preview && (
-            <p className="text-sm text-sky-600/80">拍摄后将自动开始识别</p>
           )}
           <input
             ref={cameraInputRef}
