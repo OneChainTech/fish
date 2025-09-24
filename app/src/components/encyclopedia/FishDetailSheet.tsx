@@ -46,7 +46,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-slate-900">{fish.name_cn}</h2>
-              <p className="text-xs text-slate-500">{fish.alias[0] ?? fish.name_lat}</p>
+              <p className="text-xs text-slate-500">{fish.name_lat}</p>
             </div>
             <span
               className={cn(
@@ -68,11 +68,6 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
             <span className={cn("rounded-full px-3 py-1", rarityColor[fish.rarity])}>
               稀有度：{rarityLabel[fish.rarity]}
             </span>
-            {fish.alias.length > 0 && (
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
-                别名：{fish.alias.join(" / ")}
-              </span>
-            )}
           </div>
         </div>
       </div>

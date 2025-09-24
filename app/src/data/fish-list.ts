@@ -1,7 +1,6 @@
 export type FishEntry = {
   id: string;
   name_cn: string;
-  alias: string[];
   name_lat: string;
   family: string;
   length: string;
@@ -15,7 +14,6 @@ export const fishList: FishEntry[] = [
   {
     id: "makouyu",
     name_cn: "马口鱼",
-    alias: ["大口扒"],
     name_lat: "Opsariichthys bidens",
     family: "鲤科",
     length: "20cm",
@@ -27,7 +25,6 @@ export const fishList: FishEntry[] = [
   {
     id: "qiaoyu",
     name_cn: "鳜鱼",
-    alias: ["桂花鱼"],
     name_lat: "Siniperca chuatsi",
     family: "鳜科",
     length: "28cm",
@@ -38,20 +35,18 @@ export const fishList: FishEntry[] = [
   },
   {
     id: "wuli",
-    name_cn: "乌鳢",
-    alias: ["黑鱼"],
+    name_cn: "黑鱼",
     name_lat: "Channa argus",
     family: "鳢科",
     length: "50cm",
     habitat: "池塘、稻田与静水湿地",
     image: "/images/fish/wuli.png",
-    description: "凶猛耐活的肉食鱼类，可短时间离水呼吸，在华东华南民间料理中十分常见。",
+    description: "黑鱼是凶猛且耐活的肉食鱼类，可短时间离水呼吸，在华东华南的民间料理中十分常见。",
     rarity: "common",
   },
   {
     id: "hongzun",
     name_cn: "虹鳟",
-    alias: ["七色鱼"],
     name_lat: "Oncorhynchus mykiss",
     family: "鲑科",
     length: "45cm",
@@ -63,7 +58,6 @@ export const fishList: FishEntry[] = [
   {
     id: "jinqiangyu",
     name_cn: "金枪鱼",
-    alias: ["黄鳍金枪鱼"],
     name_lat: "Thunnus albacares",
     family: "鲔科",
     length: "150cm",
@@ -75,7 +69,6 @@ export const fishList: FishEntry[] = [
   {
     id: "ganyu",
     name_cn: "鳡鱼",
-    alias: ["水老虎"],
     name_lat: "Elopichthys bambusa",
     family: "鲤科",
     length: "80cm",
@@ -87,7 +80,6 @@ export const fishList: FishEntry[] = [
   {
     id: "gouyu",
     name_cn: "狗鱼",
-    alias: ["河狗"],
     name_lat: "Esox reicherti",
     family: "狗鱼科",
     length: "70cm",
@@ -99,7 +91,6 @@ export const fishList: FishEntry[] = [
   {
     id: "ganzui",
     name_cn: "翘嘴",
-    alias: ["红鳍鲌"],
     name_lat: "Chanosichthys sp.",
     family: "鲌亚科",
     length: "30cm",
@@ -110,20 +101,18 @@ export const fishList: FishEntry[] = [
   },
   {
     id: "black-bass",
-    name_cn: "大口黑鲈",
-    alias: ["加州鲈鱼"],
-    name_lat: "Micropterus salmoides",
-    family: "太阳鱼科",
-    length: "35cm",
-    habitat: "淡水湖泊、河道缓流区",
+    name_cn: "鲈鱼",
+    name_lat: "Lateolabrax maculatus",
+    family: "金眼鲈科",
+    length: "45cm",
+    habitat: "沿海河口、浅海滩涂与入海口",
     image: "/images/fish/black-bass.png",
-    description: "掠食性极强的外来鱼种，常作为竞技钓鱼目标，适应力与爆发力兼备。",
+    description: "鲈鱼为沿海洄游性鱼类，善于在潮汐交汇处觅食，肉质细腻鲜美，是华东沿海常见的经济鱼。",
     rarity: "common",
   },
   {
     id: "junyu",
     name_cn: "军鱼",
-    alias: ["光倒刺鲃"],
     name_lat: "Spinibarbus hollandi",
     family: "鲃亚科",
     length: "40cm",
@@ -135,7 +124,6 @@ export const fishList: FishEntry[] = [
   {
     id: "taiyangyu",
     name_cn: "太阳鱼",
-    alias: ["蓝鳃太阳鱼"],
     name_lat: "Lepomis gibbosus",
     family: "太阳鱼科",
     length: "18cm",
@@ -147,7 +135,6 @@ export const fishList: FishEntry[] = [
   {
     id: "liyu",
     name_cn: "鲤鱼",
-    alias: ["鲤拐子"],
     name_lat: "Cyprinus carpio",
     family: "鲤科",
     length: "60cm",
@@ -159,7 +146,6 @@ export const fishList: FishEntry[] = [
   {
     id: "luofei",
     name_cn: "罗非鱼",
-    alias: ["非洲鲫鱼"],
     name_lat: "Oreochromis niloticus",
     family: "慈鲷科",
     length: "35cm",
@@ -171,7 +157,6 @@ export const fishList: FishEntry[] = [
   {
     id: "shiban",
     name_cn: "石斑鱼",
-    alias: ["青斑"],
     name_lat: "Epinephelus coioides",
     family: "鲈形目石斑鱼科",
     length: "70cm",
@@ -182,26 +167,24 @@ export const fishList: FishEntry[] = [
   },
   {
     id: "changwenmian",
-    name_cn: "长吻鮠",
-    alias: ["鮰鱼", "鲇鱼"],
-    name_lat: "Leiocassis longirostris",
-    family: "鲿科",
-    length: "35cm",
-    habitat: "江河底层及深水缓流区",
+    name_cn: "鲶鱼",
+    name_lat: "Silurus asotus",
+    family: "鲶科",
+    length: "50cm",
+    habitat: "江河湖泊底层及静水洼地",
     image: "/images/fish/changwenmian.png",
-    description: "具长吻与触须，夜行性强，味道鲜美，是长江流域的重要经济鱼类。",
+    description: "鲶鱼体表无鳞，触须发达，偏好夜间活动，肉质细嫩，是常见的淡水经济鱼类。",
     rarity: "common",
   },
   {
     id: "shannvzun",
-    name_cn: "麻苏大麻哈鱼",
-    alias: ["山女鳟"],
-    name_lat: "Oncorhynchus masou",
+    name_cn: "山女鳟",
+    name_lat: "Oncorhynchus masou masou",
     family: "鲑科",
     length: "35cm",
     habitat: "山溪冷水段及高海拔水库",
     image: "/images/fish/shannvzun.png",
-    description: "日本海域洄游性鱼种，体表布满斑点，肉质细腻，素有“山中公主”美称。",
+    description: "山女鳟原产东亚山溪，体表布满细密斑点，肉质细腻，被誉为山间的高档食材。",
     rarity: "rare",
   },
 ];
