@@ -6,12 +6,8 @@ import { usePathname } from "next/navigation";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { ClientBootstrap } from "@/components/layout/ClientBootstrap";
 import { useCollectionSync } from "@/hooks/useCollectionSync";
+import { navItems } from "@/components/navigation/navItems";
 import { cn } from "@/lib/utils";
-
-const desktopNav = [
-  { href: "/encyclopedia", label: "图鉴" },
-  { href: "/identify", label: "鱼眼" },
-];
 
 function CollectionSyncGate() {
   useCollectionSync();
@@ -33,7 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             鱼眼
           </Link>
           <nav className="flex gap-2 text-xs text-slate-500">
-            {desktopNav.map((item) => {
+            {navItems.map((item) => {
               const active = resolvedPath.startsWith(item.href);
               return (
                 <Link
