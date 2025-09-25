@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const desktopNav = [
   { href: "/encyclopedia", label: "图鉴" },
-  { href: "/identify", label: "识别" },
+  { href: "/identify", label: "鱼眼" },
 ];
 
 function CollectionSyncGate() {
@@ -30,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-24 pt-5 sm:px-6">
         <header className="mb-5 hidden items-center justify-between rounded-2xl border border-white/60 bg-white/80 px-5 py-3 shadow-sm backdrop-blur-md md:flex">
           <Link href="/identify" className="text-base font-semibold text-sky-600">
-            鱼眼识界
+            鱼眼
           </Link>
           <nav className="flex gap-2 text-xs text-slate-500">
             {desktopNav.map((item) => {

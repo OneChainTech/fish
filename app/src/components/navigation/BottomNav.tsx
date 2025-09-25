@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/encyclopedia", label: "图鉴" },
-  { href: "/identify", label: "识别" },
+  { href: "/identify", label: "鱼眼" },
 ];
 
 export function BottomNav() {
