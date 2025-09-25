@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { RecognitionSummary } from "@/components/identify/RecognitionSummary";
 import { CameraIcon } from "@/components/ui/IconSet";
 import { fishingTips } from "@/data/fishing-tips";
+import { compressImage } from "@/lib/imageCompression";
 
 type RecognitionResponse = {
   status: string;
@@ -108,22 +109,21 @@ export default function IdentifyPage() {
     }
     setError(null);
     setResult(null);
-    const type = file.type || "image/jpeg";
-    setMimeType(type);
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      if (typeof reader.result === "string") {
-        setPreview(reader.result);
-        await recognizeImage(reader.result, type);
+    try {
+      setIsLoading(true);
+      const { dataUrl, mimeType: processedType } = await compressImage(file);
+      setPreview(dataUrl);
+      setMimeType(processedType);
+      await recognizeImage(dataUrl, processedType);
+    } catch (err) {
+      console.error(err);
+      setError("图片处理失败，请重试或选择另一张照片。");
+      setIsLoading(false);
+    } finally {
+      if (cameraInputRef.current) {
+        cameraInputRef.current.value = "";
       }
-    };
-    reader.onerror = () => {
-      setError("图片读取失败，请重试。");
-    };
-    reader.readAsDataURL(file);
-    if (cameraInputRef.current) {
-      cameraInputRef.current.value = "";
     }
   };
 

@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
               type: "image_url",
               image_url: {
                 url: imageUrl,
-                detail: "high",
+                detail: "auto",
               },
             },
             {
