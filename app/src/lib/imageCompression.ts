@@ -69,8 +69,18 @@ export async function compressImage(file: File): Promise<CompressedImage> {
   const bitmap = await imageBitmapFromFile(file);
   const targetType = file.type === "image/png" ? "image/png" : "image/jpeg";
 
-  const sourceWidth = "width" in bitmap ? bitmap.width : bitmap.naturalWidth;
-  const sourceHeight = "height" in bitmap ? bitmap.height : bitmap.naturalHeight;
+  const sourceWidth =
+    "width" in bitmap && typeof bitmap.width === "number"
+      ? bitmap.width
+      : bitmap instanceof HTMLImageElement
+        ? bitmap.naturalWidth
+        : (bitmap as ImageBitmap).width;
+  const sourceHeight =
+    "height" in bitmap && typeof bitmap.height === "number"
+      ? bitmap.height
+      : bitmap instanceof HTMLImageElement
+        ? bitmap.naturalHeight
+        : (bitmap as ImageBitmap).height;
   const { width, height } = scaleDimensions(sourceWidth, sourceHeight);
 
   const canvas = document.createElement("canvas");
