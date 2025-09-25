@@ -19,11 +19,26 @@ const rarityCardFrame: Record<FishEntry["rarity"], string> = {
   rare: "border-[3px] border-fuchsia-400 shadow-[0_10px_26px_rgba(217,70,239,0.45)]",
 };
 
+type RarityFilter = "all" | FishEntry["rarity"];
+
+const rarityFilters: { value: RarityFilter; label: string }[] = [
+  { value: "all", label: "全部" },
+  { value: "common", label: rarityTag.common },
+  { value: "uncommon", label: rarityTag.uncommon },
+  { value: "rare", label: rarityTag.rare },
+];
+
 export default function EncyclopediaPage() {
   const collectedIds = useFishStore((state) => state.collectedFishIds);
   const collectedSet = useMemo(() => new Set(collectedIds), [collectedIds]);
   const collectedCount = collectedIds.length;
+  const [rarityFilter, setRarityFilter] = useState<RarityFilter>("all");
   const [selectedFish, setSelectedFish] = useState<FishEntry | null>(null);
+
+  const filteredFishList = useMemo(() => {
+    if (rarityFilter === "all") return fishList;
+    return fishList.filter((fish) => fish.rarity === rarityFilter);
+  }, [rarityFilter]);
 
   return (
     <section className="flex flex-1 flex-col gap-5 pb-4">
@@ -37,10 +52,31 @@ export default function EncyclopediaPage() {
         <p className="text-xs text-slate-500">
           点击鱼卡查看详情与插画。未解锁的鱼会以半透明展示。
         </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          {rarityFilters.map((item) => {
+            const active = item.value === rarityFilter;
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setRarityFilter(item.value)}
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-medium transition",
+                  active
+                    ? "bg-sky-100 text-sky-700 shadow-sm"
+                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                )}
+                aria-pressed={active}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
       </header>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {fishList.map((fish) => {
+        {filteredFishList.map((fish) => {
           const collected = collectedSet.has(fish.id);
           return (
             <article
