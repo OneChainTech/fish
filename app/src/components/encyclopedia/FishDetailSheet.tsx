@@ -1,21 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { FishEntry } from "@/data/fish-list";
 import { cn } from "@/lib/utils";
+import { useFishStore } from "@/store/useFishStore";
 
-const rarityLabel: Record<FishEntry["rarity"], string> = {
-  common: "常见",
-  uncommon: "较稀有",
-  rare: "稀有",
-};
-
-const rarityColor: Record<FishEntry["rarity"], string> = {
-  common: "bg-emerald-50 text-emerald-600",
-  uncommon: "bg-blue-50 text-blue-600",
-  rare: "bg-purple-50 text-purple-600",
-};
+// 移除稀有度显示，相关常量删除
 
 type Props = {
   fish: FishEntry;
@@ -29,12 +20,59 @@ type LocationMark = {
   recordedAt: string;
 };
 
+function getMarksStorageKey(userId: string, fishId: string) {
+  return `fish-marks-${userId}-${fishId}`;
+}
+
 export function FishDetailSheet({ fish, collected, onClose }: Props) {
   const [locationStatus, setLocationStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
   const [marks, setMarks] = useState<LocationMark[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const userId = useFishStore((state) => state.userId);
+
+  // 初次加载：读取本地持久化的标点
+  useEffect(() => {
+    if (!userId || typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(
+        getMarksStorageKey(userId, fish.id)
+      );
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const sanitized: LocationMark[] = parsed
+          .filter((item: unknown) =>
+            item && typeof item === "object" &&
+            typeof (item as any).id === "string" &&
+            typeof (item as any).address === "string" &&
+            typeof (item as any).recordedAt === "string"
+          )
+          .slice(0, 3) as LocationMark[];
+        if (sanitized.length > 0) {
+          setMarks(sanitized);
+        }
+      }
+    } catch (e) {
+      // 解析失败时忽略
+      console.warn("读取本地标点失败", e);
+    }
+  }, [userId, fish.id]);
+
+  // 标点变更时：写回本地
+  useEffect(() => {
+    if (!userId || typeof window === "undefined") return;
+    try {
+      const payload = JSON.stringify(marks.slice(0, 3));
+      window.localStorage.setItem(
+        getMarksStorageKey(userId, fish.id),
+        payload
+      );
+    } catch (e) {
+      console.warn("写入本地标点失败", e);
+    }
+  }, [userId, fish.id, marks]);
 
   const handleLocate = useCallback(() => {
     if (!navigator.geolocation) {
@@ -192,15 +230,21 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
             <p className="text-sm text-slate-600">栖息环境：{fish.habitat}</p>
           </div>
           <p className="mb-4 text-sm leading-6 text-slate-600">{fish.description}</p>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <span className={cn("rounded-full px-3 py-1", rarityColor[fish.rarity])}>
-              稀有度：{rarityLabel[fish.rarity]}
-            </span>
-          </div>
+          {/* 稀有度区块已根据需求去除 */}
           <div className="mt-6 space-y-3">
             {marks.length > 0 && (
               <div className="rounded-2xl bg-emerald-50 px-5 py-4">
-                <h3 className="text-sm font-semibold text-emerald-700">标点</h3>
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 2a7 7 0 0 0-7 7c0 5.25 6.03 11.23 6.29 11.49a1 1 0 0 0 1.42 0C12.97 20.23 19 14.25 19 9a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z" />
+                  </svg>
+                  标点
+                </h3>
                 <div className="mt-2 space-y-2 text-sm text-emerald-700">
                   {marks.map((mark) => (
                     <p
