@@ -229,7 +229,6 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
             </span>
           </div>
           <div className="mb-4 flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-sky-50 to-slate-100 p-5">
-            <p className="text-sm text-slate-600">拉丁学名：{fish.name_lat}</p>
             <p className="text-sm text-slate-600">所属科目：{fish.family}</p>
             <p className="text-sm text-slate-600">典型体长：{fish.length}</p>
             <p className="text-sm text-slate-600">栖息环境：{fish.habitat}</p>
