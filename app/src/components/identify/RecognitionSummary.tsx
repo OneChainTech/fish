@@ -138,7 +138,7 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
       {/* 主要识别结果 */}
       <div className="space-y-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{result.name_cn}</h2>
+          <h2 className="text-lg font-bold text-slate-900">{result.name_cn}</h2>
           <div className="mt-2 space-y-1 text-sm text-slate-500">
             <div>拉丁学名：{result.name_lat || "暂缺"}</div>
             <div>所属科目：{result.family || "暂缺"}</div>
