@@ -24,6 +24,16 @@ function getMarksStorageKey(userId: string, fishId: string) {
   return `fish-marks-${userId}-${fishId}`;
 }
 
+function isLocationMark(value: unknown): value is LocationMark {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as { id?: unknown; address?: unknown; recordedAt?: unknown };
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.address === "string" &&
+    typeof candidate.recordedAt === "string"
+  );
+}
+
 export function FishDetailSheet({ fish, collected, onClose }: Props) {
   const [locationStatus, setLocationStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -42,14 +52,9 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        const sanitized: LocationMark[] = parsed
-          .filter((item: unknown) =>
-            item && typeof item === "object" &&
-            typeof (item as any).id === "string" &&
-            typeof (item as any).address === "string" &&
-            typeof (item as any).recordedAt === "string"
-          )
-          .slice(0, 2) as LocationMark[];
+        const sanitized: LocationMark[] = (parsed as unknown[])
+          .filter(isLocationMark)
+          .slice(0, 2);
         if (sanitized.length > 0) {
           setMarks(sanitized);
         }
