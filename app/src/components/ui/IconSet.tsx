@@ -37,3 +37,5 @@ export function PhotoIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+// 邮箱图标已移除

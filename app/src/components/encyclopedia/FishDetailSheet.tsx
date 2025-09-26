@@ -49,7 +49,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
             typeof (item as any).address === "string" &&
             typeof (item as any).recordedAt === "string"
           )
-          .slice(0, 3) as LocationMark[];
+          .slice(0, 2) as LocationMark[];
         if (sanitized.length > 0) {
           setMarks(sanitized);
         }
@@ -64,7 +64,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
   useEffect(() => {
     if (!userId || typeof window === "undefined") return;
     try {
-      const payload = JSON.stringify(marks.slice(0, 3));
+      const payload = JSON.stringify(marks.slice(0, 2));
       window.localStorage.setItem(
         getMarksStorageKey(userId, fish.id),
         payload
@@ -120,7 +120,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
               recordedAt: new Date().toISOString(),
             };
             const nextMarks = [entry, ...prev];
-            return nextMarks.slice(0, 3);
+            return nextMarks.slice(0, 2);
           });
           setErrorMessage("");
           setLocationStatus("success");
@@ -234,7 +234,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
           <div className="mt-6 space-y-3">
             {marks.length > 0 && (
               <div className="rounded-2xl bg-emerald-50 px-5 py-4">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                <h3 className="flex items-center gap-2 text-base font-semibold text-emerald-700">
                   <svg
                     aria-hidden="true"
                     className="h-4 w-4"

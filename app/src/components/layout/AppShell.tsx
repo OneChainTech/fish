@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link href="/identify" className="text-base font-semibold text-sky-600">
             鱼眼
           </Link>
-          <nav className="flex gap-2 text-xs text-slate-500">
+          <nav className="flex items-center gap-3 text-xs text-slate-500">
             {navItems.map((item) => {
               const active = resolvedPath.startsWith(item.href);
               return (

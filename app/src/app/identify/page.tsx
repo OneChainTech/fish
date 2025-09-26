@@ -208,6 +208,7 @@ export default function IdentifyPage() {
       </form>
 
       <RecognitionSummary result={result} isLoading={isLoading} pendingTip={currentTip} />
+      {/* 邮箱入口已移除 */}
     </section>
   );
 }
