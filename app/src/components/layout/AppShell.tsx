@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-24 pt-5 sm:px-6">
         <header className="mb-5 hidden items-center justify-between rounded-2xl border border-white/60 bg-white/80 px-5 py-3 shadow-sm backdrop-blur-md md:flex">
           <Link href="/identify" className="text-base font-semibold text-sky-600">
-            识鱼
+            鳟鱼季
           </Link>
           <nav className="flex items-center gap-3 text-xs text-slate-500">
             {navItems.map((item) => {

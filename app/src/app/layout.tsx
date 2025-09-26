@@ -9,7 +9,8 @@ const notoSans = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: "识鱼",
+  title: "鳟鱼季",
+  applicationName: "鳟鱼季",
   description: "拍照识鱼、解锁专属图鉴进度的移动端应用",
   icons: {
     icon: [
