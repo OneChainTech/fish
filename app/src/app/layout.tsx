@@ -11,7 +11,6 @@ const notoSans = Noto_Sans_SC({
 export const metadata: Metadata = {
   title: "鱼眼",
   description: "拍照识鱼、解锁专属图鉴进度的移动端应用",
-  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -22,11 +21,6 @@ export const metadata: Metadata = {
       { url: "/icons/icon-192.png" },
       { url: "/icons/icon-512.png" },
     ],
-  },
-  appleWebApp: {
-    capable: true,
-    title: "鱼眼",
-    statusBarStyle: "black-translucent",
   },
 };
 
