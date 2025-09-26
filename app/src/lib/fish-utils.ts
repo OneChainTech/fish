@@ -124,6 +124,25 @@ export function findFishByName(name: string): FishEntry | undefined {
   // 如果没有精确匹配，尝试模糊匹配
   const candidates: Array<{ fish: FishEntry; score: number; type: 'similarity' | 'keyword' }> = [];
   
+  // 优化：先进行快速关键词匹配，减少计算量
+  const quickKeywordMatches: Array<{ fish: FishEntry; score: number }> = [];
+  for (const fish of fishList) {
+    const keywordScoreCn = calculateKeywordScore(name, fish.name_cn);
+    const keywordScoreLat = calculateKeywordScore(name, fish.name_lat);
+    const maxKeywordScore = Math.max(keywordScoreCn, keywordScoreLat);
+    
+    if (maxKeywordScore > 0) {
+      quickKeywordMatches.push({ fish, score: maxKeywordScore });
+    }
+  }
+  
+  // 如果有关键词匹配，直接返回最佳匹配
+  if (quickKeywordMatches.length > 0) {
+    quickKeywordMatches.sort((a, b) => b.score - a.score);
+    return quickKeywordMatches[0].fish;
+  }
+  
+  // 否则进行相似度匹配
   for (const fish of fishList) {
     const fishNameCn = normalizeName(fish.name_cn);
     const fishNameLat = normalizeName(fish.name_lat);

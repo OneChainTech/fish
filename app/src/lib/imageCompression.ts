@@ -1,5 +1,5 @@
-const MAX_DIMENSION = 1280;
-const JPEG_QUALITY = 0.72;
+const MAX_DIMENSION = 1024; // 减少到1024px，减少处理时间
+const JPEG_QUALITY = 0.65; // 降低质量，减少文件大小
 
 export type CompressedImage = {
   dataUrl: string;
@@ -65,8 +65,10 @@ async function canvasToDataURL(
   });
 }
 
-export async function compressImage(file: File): Promise<CompressedImage> {
+export async function compressImage(file: File, onProgress?: (progress: number) => void): Promise<CompressedImage> {
+  onProgress?.(10);
   const bitmap = await imageBitmapFromFile(file);
+  onProgress?.(30);
   const targetType = file.type === "image/png" ? "image/png" : "image/jpeg";
 
   const sourceWidth =
@@ -83,6 +85,7 @@ export async function compressImage(file: File): Promise<CompressedImage> {
         : (bitmap as ImageBitmap).height;
   const { width, height } = scaleDimensions(sourceWidth, sourceHeight);
 
+  onProgress?.(50);
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -96,8 +99,10 @@ export async function compressImage(file: File): Promise<CompressedImage> {
     (bitmap as ImageBitmap).close();
   }
 
+  onProgress?.(80);
   const quality = targetType === "image/jpeg" ? JPEG_QUALITY : undefined;
   const dataUrl = await canvasToDataURL(canvas, targetType, quality);
+  onProgress?.(100);
 
   return {
     dataUrl,

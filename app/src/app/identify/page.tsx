@@ -22,6 +22,7 @@ export default function IdentifyPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RecognitionResponse | null>(null);
   const [currentTip, setCurrentTip] = useState<string | null>(null);
@@ -71,9 +72,11 @@ export default function IdentifyPage() {
 
     try {
       setIsLoading(true);
+      setLoadingStep("正在上传图片...");
       setError(null);
       setResult(null);
 
+      setLoadingStep("正在识别鱼类...");
       const response = await fetch("/api/recognize", {
         method: "POST",
         headers: {
@@ -90,6 +93,7 @@ export default function IdentifyPage() {
         return;
       }
 
+      setLoadingStep("正在分析结果...");
       const data = await response.json();
       const recognized: RecognitionResponse = data.result;
       setResult(recognized);
@@ -98,6 +102,7 @@ export default function IdentifyPage() {
       setError("识别请求异常，请检查网络后重试。");
     } finally {
       setIsLoading(false);
+      setLoadingStep("");
     }
   };
 
@@ -112,7 +117,10 @@ export default function IdentifyPage() {
 
     try {
       setIsLoading(true);
-      const { dataUrl, mimeType: processedType } = await compressImage(file);
+      setLoadingStep("正在压缩图片...");
+      const { dataUrl, mimeType: processedType } = await compressImage(file, (progress) => {
+        setLoadingStep(`正在压缩图片... ${progress}%`);
+      });
       setPreview(dataUrl);
       setMimeType(processedType);
       await recognizeImage(dataUrl, processedType);
