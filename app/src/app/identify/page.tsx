@@ -139,7 +139,7 @@ export default function IdentifyPage() {
   return (
     <section className="flex flex-1 flex-col gap-6 pb-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">鳟鱼季</h1>
+        <h1 className="text-2xl font-semibold">识鱼</h1>
         <p className="text-xs text-slate-500">
           拍摄清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
         </p>

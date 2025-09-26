@@ -5,5 +5,5 @@ export type AppNavItem = {
 
 export const navItems: AppNavItem[] = [
   { href: "/encyclopedia", label: "图鉴" },
-  { href: "/identify", label: "鳟鱼季" },
+  { href: "/identify", label: "识鱼" },
 ];
