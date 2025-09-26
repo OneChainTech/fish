@@ -14,9 +14,9 @@ const rarityTag: Record<FishEntry["rarity"], string> = {
 };
 
 const rarityCardFrame: Record<FishEntry["rarity"], string> = {
-  common: "border border-slate-200 shadow-sm",
-  uncommon: "border-2 border-amber-300 shadow-[0_6px_18px_rgba(253,230,138,0.35)]",
-  rare: "border-[3px] border-fuchsia-400 shadow-[0_10px_26px_rgba(217,70,239,0.45)]",
+  common: "border border-slate-200",
+  uncommon: "border-2 border-amber-300",
+  rare: "border-[3px] border-fuchsia-400",
 };
 
 type RarityFilter = "all" | FishEntry["rarity"];
@@ -103,11 +103,8 @@ export default function EncyclopediaPage() {
                   }`}
                 />
                 {!collected && <div className="absolute inset-0 bg-slate-900/10" />}
-                <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[11px] font-medium text-slate-600">
-                  {rarityTag[fish.rarity]}
-                </div>
                 {!collected && (
-                  <div className="absolute bottom-3 right-3 rounded-full bg-white/85 px-3 py-1 text-[11px] font-semibold text-slate-500">
+                  <div className="absolute left-3 top-3 rounded-full bg-white/85 px-2 py-1 text-[11px] font-semibold text-slate-500">
                     待解锁
                   </div>
                 )}
