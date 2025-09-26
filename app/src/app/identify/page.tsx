@@ -186,14 +186,7 @@ export default function IdentifyPage() {
             disabled={isLoading}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            {isLoading ? (
-              "正在识别..."
-            ) : (
-              <>
-                <CameraIcon className="h-4 w-4" />
-                拍照识别
-              </>
-            )}
+            {isLoading ? "正在识别..." : "拍照识别"}
           </button>
           
           {error && (
