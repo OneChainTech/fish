@@ -30,24 +30,6 @@ function calculateSimilarity(str1: string, str2: string): number {
   return lcs / Math.max(len1, len2);
 }
 
-/**
- * 检查是否包含关键词匹配
- */
-function hasKeywordMatch(searchName: string, fishName: string): boolean {
-  const searchWords = searchName.split(/[\s\u3000]+/).filter(word => word.length > 1);
-  const fishWords = fishName.split(/[\s\u3000]+/).filter(word => word.length > 1);
-  
-  // 检查是否有任何搜索词包含在鱼名中，或鱼名包含在搜索词中
-  for (const searchWord of searchWords) {
-    for (const fishWord of fishWords) {
-      if (searchWord.includes(fishWord) || fishWord.includes(searchWord)) {
-        return true;
-      }
-    }
-  }
-  
-  return false;
-}
 
 /**
  * 计算关键词匹配的权重分数
@@ -114,7 +96,7 @@ export function findFishByName(name: string): FishEntry | undefined {
   const normalized = normalizeName(name);
   
   // 首先尝试精确匹配
-  let exactMatch = fishList.find((fish) => {
+  const exactMatch = fishList.find((fish) => {
     if (normalizeName(fish.name_cn) === normalized) return true;
     return normalizeName(fish.name_lat) === normalized;
   });

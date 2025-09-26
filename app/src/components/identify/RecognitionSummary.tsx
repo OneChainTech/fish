@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { findFishByName } from "@/lib/fish-utils";
 import { useFishStore } from "@/store/useFishStore";
 import { ConfettiCelebration } from "@/components/identify/ConfettiCelebration";
+import { fishList } from "@/data/fish-list";
 
 type Props = {
   result: {
@@ -14,6 +15,8 @@ type Props = {
     description?: string;
     confidence?: number;
     reason?: string;
+    unlock_fish_id?: string;
+    unlock_confidence?: number;
   } | null;
   isLoading: boolean;
   pendingTip: string | null;
@@ -40,24 +43,25 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
       return;
     }
 
-    const match = findFishByName(result.name_cn);
+    // 使用AI直接返回的解锁信息
     const payload = {
       name_cn: result.name_cn,
       name_lat: result.name_lat,
       family: result.family,
       description: result.description,
       confidence: result.confidence,
-      matchedFishId: match?.id,
+      matchedFishId: result.unlock_fish_id,
     };
 
     setCurrentRecognition(payload);
 
-    if (match) {
-      const shouldUnlock = (result.confidence ?? 0) >= UNLOCK_THRESHOLD;
-      const alreadyUnlocked = collectedFishIdsRef.current.includes(match.id);
+    // 使用AI判断的解锁逻辑
+    if (result.unlock_fish_id) {
+      const shouldUnlock = (result.unlock_confidence ?? 0) >= UNLOCK_THRESHOLD;
+      const alreadyUnlocked = collectedFishIdsRef.current.includes(result.unlock_fish_id);
 
       if (shouldUnlock && !alreadyUnlocked) {
-        unlockFish(match.id);
+        unlockFish(result.unlock_fish_id);
         setJustUnlocked(true);
       } else {
         setJustUnlocked(false);
@@ -69,6 +73,12 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
 
   const match = useMemo(() => {
     if (!result || result.status !== "ok" || !result.name_cn) return undefined;
+    // 如果AI直接返回了匹配的鱼类ID，查找对应的鱼类信息
+    if (result.unlock_fish_id) {
+      const fish = fishList.find(f => f.id === result.unlock_fish_id);
+      return fish;
+    }
+    // 否则使用原来的模糊匹配逻辑作为备选
     return findFishByName(result.name_cn);
   }, [result]);
 
@@ -117,7 +127,7 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
       );
   }
 
-  const unlocked = match && (result.confidence ?? 0) >= UNLOCK_THRESHOLD;
+  const unlocked = match && result.unlock_fish_id && (result.unlock_confidence ?? 0) >= UNLOCK_THRESHOLD;
 
   return (
     <div className={`relative space-y-4 ${justUnlocked ? "animate-card-pop" : ""}`}>

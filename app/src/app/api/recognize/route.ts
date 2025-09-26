@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { fishList } from "@/data/fish-list";
 
 const API_ENDPOINT = "https://api.siliconflow.cn/v1/chat/completions";
 const MODEL = "zai-org/GLM-4.5V";
@@ -81,6 +82,8 @@ type RecognitionPayload = {
   description?: string;
   confidence?: number;
   reason?: string;
+  unlock_fish_id?: string;
+  unlock_confidence?: number;
 };
 
 function normalizeParsedResult(raw: unknown): RecognitionPayload {
@@ -132,6 +135,8 @@ function normalizeParsedResult(raw: unknown): RecognitionPayload {
       typeof record.description === "string" ? record.description : undefined,
     confidence,
     reason,
+    unlock_fish_id: typeof record.unlock_fish_id === "string" ? record.unlock_fish_id : undefined,
+    unlock_confidence: typeof record.unlock_confidence === "number" ? record.unlock_confidence : undefined,
   };
 
   if (normalized.status !== "ok" && !normalized.reason) {
@@ -160,16 +165,26 @@ export async function POST(req: NextRequest) {
 
     const imageUrl = `data:${mimeType};base64,${imageBase64}`;
 
+    // 构建鱼类图鉴数据
+    const fishEncyclopedia = fishList.map(fish => ({
+      id: fish.id,
+      name_cn: fish.name_cn,
+      name_lat: fish.name_lat,
+      family: fish.family,
+      description: fish.description,
+      rarity: fish.rarity
+    }));
+
     const body = {
       model: MODEL,
       temperature: 0.2,
       top_p: 0.8,
-      max_tokens: 800,
+      max_tokens: 1000,
       messages: [
         {
           role: "system",
           content:
-            "你是一名资深鱼类生物学专家，需根据图片识别鱼类并返回JSON格式结果。任何输出都必须为有效的JSON对象，包含 name_cn、name_lat、family、description、confidence 字段，无法识别时请返回 {\"status\":\"unrecognized\",\"reason\":\"描述原因\"}。全部中文回复。",
+            "你是一名资深鱼类生物学专家，需要根据图片识别鱼类并判断是否解锁图鉴。请分析图片中的鱼类，与提供的图鉴数据库进行匹配，并直接判断是否解锁某个图鉴。返回JSON格式结果，包含识别信息和解锁判断。",
         },
         {
           role: "user",
@@ -184,7 +199,28 @@ export async function POST(req: NextRequest) {
             {
               type: "text",
               text:
-                "请识别该图像中的鱼类。如果能确定品种，请输出严格 JSON:\n{\"status\":\"ok\",\"name_cn\":\"中文名\",\"name_lat\":\"拉丁学名\",\"family\":\"所属科目\",\"description\":\"简介\",\"confidence\":0.0}。置信度范围0-1。无法识别请遵守 {\"status\":\"unrecognized\",\"reason\":\"原因\"} 格式。",
+                `请识别该图像中的鱼类，并与以下图鉴数据库进行匹配：
+
+图鉴数据库：
+${JSON.stringify(fishEncyclopedia, null, 2)}
+
+请输出严格JSON格式：
+{
+  "status": "ok|unrecognized",
+  "name_cn": "中文名",
+  "name_lat": "拉丁学名", 
+  "family": "所属科目",
+  "description": "简介",
+  "confidence": 0.0,
+  "unlock_fish_id": "匹配的图鉴ID或null",
+  "unlock_confidence": 0.0
+}
+
+判断规则：
+1. 如果图片中的鱼类与图鉴中的某个鱼类高度匹配，设置unlock_fish_id为该鱼类的id
+2. 如果只是相似但不完全确定，unlock_fish_id为null
+3. unlock_confidence表示解锁的置信度(0-1)
+4. 无法识别时返回 {"status":"unrecognized","reason":"原因"}`,
             },
           ],
         },
