@@ -145,17 +145,13 @@ export default function IdentifyPage() {
           拍摄清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
         </p>
       </header>
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6 rounded-3xl border border-white/60 bg-white/90 p-5 shadow-lg shadow-sky-100/60 backdrop-blur"
-        noValidate
-      >
-        <fieldset
-          className={`relative h-56 w-full overflow-hidden rounded-2xl text-center transition-colors ${
-            preview ? "bg-white" : "bg-sky-50/60"
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {/* 图片预览区域 */}
+        <div
+          className={`relative h-56 w-full overflow-hidden rounded-xl text-center transition-colors ${
+            preview ? "bg-slate-50" : "bg-sky-50"
           }`}
         >
-          <legend className="sr-only">拍摄鱼类照片</legend>
           {preview ? (
             <Image
               src={preview}
@@ -166,11 +162,11 @@ export default function IdentifyPage() {
               unoptimized
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-500">
-                <CameraIcon className="h-7 w-7" />
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sky-100 text-sky-500">
+                <CameraIcon className="h-6 w-6" />
               </div>
-              <p className="text-sm text-sky-600/80">拍摄后将自动开始识别</p>
+              <p className="text-sm text-sky-600">拍摄后将自动开始识别</p>
             </div>
           )}
           <input
@@ -181,14 +177,15 @@ export default function IdentifyPage() {
             className="hidden"
             onChange={(event) => handleFileSelect(event.target.files?.[0] ?? null)}
           />
-        </fieldset>
+        </div>
 
-        <div className="flex flex-col gap-3">
+        {/* 操作按钮 */}
+        <div className="space-y-3">
           <button
             type="button"
             onClick={handleOpenCamera}
             disabled={isLoading}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-sky-600 text-white shadow-md transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {isLoading ? (
               "正在识别..."
@@ -199,10 +196,11 @@ export default function IdentifyPage() {
               </>
             )}
           </button>
+          
           {error && (
             <div
               role="alert"
-              className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600"
+              className="rounded-xl bg-red-50 p-4 text-sm text-red-600"
             >
               {error}
             </div>
