@@ -107,7 +107,7 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
   if (!result) {
     if (isLoading && pendingTip) {
       return (
-        <div className="rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 p-4 shadow-sm border border-sky-100">
+        <div className="rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 p-4 shadow-sm">
           <p className="text-sm font-semibold text-sky-900 mb-2">🎣 钓鱼小贴士</p>
           <p className="text-sm leading-relaxed text-slate-700">{pendingTip}</p>
         </div>

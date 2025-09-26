@@ -197,9 +197,6 @@ export function ConfettiCelebration({ duration = 3200, onComplete }: Props) {
 
   return (
     <div className="confetti-container">
-      {/* burst ring and flash overlay for stronger visual impact */}
-      <span className="celebration-burst" />
-      <span className="celebration-flash" />
       {/** base confetti */}
       {CONFETTI_PRESET.map((piece) => {
         const style: ConfettiStyle = {
