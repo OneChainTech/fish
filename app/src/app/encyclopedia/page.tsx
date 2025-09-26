@@ -15,8 +15,8 @@ const rarityTag: Record<FishEntry["rarity"], string> = {
 
 const rarityCardFrame: Record<FishEntry["rarity"], string> = {
   common: "border border-slate-200",
-  uncommon: "border-2 border-amber-300",
-  rare: "border-[3px] border-fuchsia-400",
+  uncommon: "border border-amber-300",
+  rare: "border border-fuchsia-400",
 };
 
 type RarityFilter = "all" | FishEntry["rarity"];

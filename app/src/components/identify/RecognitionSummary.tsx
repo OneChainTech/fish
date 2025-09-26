@@ -97,9 +97,9 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
   if (!result) {
     if (isLoading && pendingTip) {
       return (
-        <div className="rounded-xl bg-sky-50 p-4">
-          <p className="text-sm font-medium text-sky-800">钓鱼小贴士</p>
-          <p className="mt-1 text-sm leading-relaxed text-sky-700">{pendingTip}</p>
+        <div className="rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 p-4 shadow-sm border border-sky-100">
+          <p className="text-sm font-semibold text-sky-900 mb-2">🎣 钓鱼小贴士</p>
+          <p className="text-sm leading-relaxed text-slate-700">{pendingTip}</p>
         </div>
       );
     }
@@ -108,9 +108,9 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
 
   if (result.status !== "ok") {
       return (
-        <div className="rounded-xl bg-orange-50 p-4">
-          <p className="text-sm font-medium text-orange-800">识别失败</p>
-          <p className="mt-1 text-sm leading-relaxed text-orange-700">
+        <div className="rounded-xl bg-gradient-to-br from-orange-50 to-red-50 p-4 shadow-sm border border-orange-100">
+          <p className="text-sm font-semibold text-orange-900 mb-2">⚠️ 识别失败</p>
+          <p className="text-sm leading-relaxed text-slate-700">
             {result.reason || "未能识别鱼种，请尝试拍摄更清晰的正面照片。"}
           </p>
         </div>
