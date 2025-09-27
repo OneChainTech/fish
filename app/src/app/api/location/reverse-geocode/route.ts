@@ -33,8 +33,9 @@ export async function POST(request: Request) {
       key: apiKey,
       location: `${converted.longitude},${converted.latitude}`,
       extensions: "all",
-      radius: "1000",
+      radius: "300",
       batch: "false",
+      sortrule: "distance",
     });
 
     const amapResponse = await fetch(
@@ -68,7 +69,38 @@ export async function POST(request: Request) {
     const pois = Array.isArray(amapResult.regeocode.pois)
       ? amapResult.regeocode.pois
       : [];
-    const poiName = pois.length > 0 ? pois[0]?.name : undefined;
+
+    const poiName = (() => {
+      const nearest = pois
+        .map((poi: unknown) => {
+          if (!poi || typeof poi !== "object") {
+            return null;
+          }
+
+          const candidate = poi as { name?: unknown; distance?: unknown };
+          const distance =
+            typeof candidate.distance === "number"
+              ? candidate.distance
+              : typeof candidate.distance === "string"
+              ? Number.parseFloat(candidate.distance)
+              : Number.POSITIVE_INFINITY;
+
+          if (!Number.isFinite(distance)) {
+            return null;
+          }
+
+          const name =
+            typeof candidate.name === "string" && candidate.name.trim() !== ""
+              ? candidate.name.trim()
+              : undefined;
+
+          return { distance, name };
+        })
+        .filter((item): item is { distance: number; name?: string } => item !== null)
+        .sort((a, b) => a.distance - b.distance)[0];
+
+      return nearest?.name;
+    })();
 
     return NextResponse.json({
       fishId,
