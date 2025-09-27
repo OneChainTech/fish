@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { wgs84ToGcj02 } from "@/lib/coordinate";
+
 const AMAP_API_KEY = process.env.AMAP_API_KEY ?? "";
 
 export async function POST(request: Request) {
@@ -25,9 +27,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "未配置高德API密钥" }, { status: 500 });
     }
 
+    const converted = wgs84ToGcj02(latitude, longitude);
+
     const params = new URLSearchParams({
       key: apiKey,
-      location: `${longitude},${latitude}`,
+      location: `${converted.longitude},${converted.latitude}`,
       extensions: "all",
       radius: "1000",
       batch: "false",
@@ -71,7 +75,12 @@ export async function POST(request: Request) {
       address: poiName || formattedAddress || "",
       formattedAddress: formattedAddress || "",
       raw: amapResult.regeocode,
-      coords: { latitude, longitude },
+      coords: {
+        latitude,
+        longitude,
+        gcjLatitude: converted.latitude,
+        gcjLongitude: converted.longitude,
+      },
     });
   } catch (error) {
     console.error("逆地理编码接口异常", error);
