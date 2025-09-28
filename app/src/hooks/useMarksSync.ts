@@ -55,7 +55,10 @@ export function useMarksSync(fishId: string) {
   // 从云端加载标点
   const loadRemoteMarks = async (uid: string, fid: string): Promise<LocationMark[]> => {
     try {
-      const response = await fetch(`/api/user/marks?userId=${encodeURIComponent(uid)}&fishId=${encodeURIComponent(fid)}`);
+      const response = await fetch(
+        `/api/user/marks?userId=${encodeURIComponent(uid)}&fishId=${encodeURIComponent(fid)}`,
+        { cache: "no-store" }
+      );
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data.marks)) {
@@ -73,7 +76,11 @@ export function useMarksSync(fishId: string) {
   };
 
   // 保存标点到云端
-  const saveRemoteMark = async (uid: string, fid: string, address: string): Promise<LocationMark | null> => {
+  const saveRemoteMark = async (
+    uid: string,
+    fid: string,
+    address: string
+  ): Promise<LocationMark | null> => {
     try {
       const response = await fetch("/api/user/marks", {
         method: "POST",
@@ -83,7 +90,7 @@ export function useMarksSync(fishId: string) {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.mark) {
+        if (data.mark && typeof data.mark.id === "string") {
           return {
             id: data.mark.id,
             address: data.mark.address,
@@ -113,10 +120,24 @@ export function useMarksSync(fishId: string) {
       setIsLoading(true);
 
       try {
-        const remoteMarks = await loadRemoteMarks(userId, fishId);
+        const localMarks = loadLocalMarks(userId, fishId);
+        if (!cancelled && localMarks.length > 0) {
+          setMarks(localMarks);
+        }
+
+        const remoteResponse = await loadRemoteMarks(userId, fishId);
         if (cancelled) return;
-        setMarks(remoteMarks);
-        saveLocalMarks(userId, fishId, remoteMarks);
+
+        if (remoteResponse.length > 0) {
+          setMarks(remoteResponse);
+          saveLocalMarks(userId, fishId, remoteResponse);
+        } else if (localMarks.length > 0) {
+          // 保留已有的本地缓存，避免覆盖掉离线记录
+          saveLocalMarks(userId, fishId, localMarks);
+        } else {
+          setMarks([]);
+          saveLocalMarks(userId, fishId, []);
+        }
       } catch (error) {
         if (cancelled) return;
         console.warn("加载标点失败，回退到本地", error);
@@ -140,28 +161,30 @@ export function useMarksSync(fishId: string) {
   const addMark = async (address: string): Promise<LocationMark | null> => {
     if (!userId || !isLoggedIn) return null;
 
-    const newMark: LocationMark = {
-      id: `${Date.now()}-${Math.random()}`,
+    const tempMark: LocationMark = {
+      id: `temp-${Date.now()}`,
       address,
       recordedAt: new Date().toISOString()
     };
 
-    // 更新本地状态
-    const updatedMarks = [newMark, ...marks].slice(0, 2);
-    setMarks(updatedMarks);
-    saveLocalMarks(userId, fishId, updatedMarks);
+    setMarks((prev) => {
+      const next = [tempMark, ...prev].slice(0, 2);
+      saveLocalMarks(userId, fishId, next);
+      return next;
+    });
 
-    // 如果已登录，同步到云端
     const remoteMark = await saveRemoteMark(userId, fishId, address);
     if (remoteMark) {
-      // 使用云端返回的ID更新本地数据
-      const finalMarks = [{ ...newMark, id: remoteMark.id }, ...marks].slice(0, 2);
-      setMarks(finalMarks);
-      saveLocalMarks(userId, fishId, finalMarks);
+      setMarks((prev) => {
+        const filtered = prev.filter((mark) => mark.id !== tempMark.id);
+        const next = [remoteMark, ...filtered].slice(0, 2);
+        saveLocalMarks(userId, fishId, next);
+        return next;
+      });
       return remoteMark;
     }
 
-    return newMark;
+    return tempMark;
   };
 
   return {
