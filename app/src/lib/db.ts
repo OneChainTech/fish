@@ -11,9 +11,27 @@ type GlobalStore = {
 
 const globalStore = globalThis as typeof globalThis & { [globalKey]?: GlobalStore };
 
+function resetUserProfileIfUsingLegacySchema(db: DatabaseInstance) {
+  try {
+    const columns = db.prepare<{ name: string }>("PRAGMA table_info(user_profile)").all();
+    const hasLegacyColumns = columns.some((column) => column.name === "password_hash");
+    const hasPlainPasswordColumn = columns.some((column) => column.name === "password");
+
+    if (hasLegacyColumns || (columns.length > 0 && !hasPlainPasswordColumn)) {
+      console.warn("检测到旧版用户表结构，正在重置 user_profile 表数据");
+      db.exec("DROP TABLE IF EXISTS user_profile;");
+    }
+  } catch (error) {
+    console.warn("检查用户表结构失败，尝试重置", error);
+    db.exec("DROP TABLE IF EXISTS user_profile;");
+  }
+}
+
 function initializeSchema(db: DatabaseInstance) {
   db.pragma("journal_mode = WAL");
-  
+
+  resetUserProfileIfUsingLegacySchema(db);
+
   // 创建表结构
   db.exec(`
     CREATE TABLE IF NOT EXISTS user_progress (
@@ -21,15 +39,14 @@ function initializeSchema(db: DatabaseInstance) {
       collected_fish_ids TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
-    
+
     CREATE TABLE IF NOT EXISTS user_profile (
       phone TEXT PRIMARY KEY,
-      password_hash TEXT NOT NULL,
-      password_salt TEXT NOT NULL,
+      password TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
-    
+
     CREATE TABLE IF NOT EXISTS user_marks (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
@@ -39,7 +56,7 @@ function initializeSchema(db: DatabaseInstance) {
       created_at TEXT NOT NULL,
       UNIQUE(user_id, fish_id, address)
     );
-    
+
     CREATE INDEX IF NOT EXISTS idx_user_marks_user_fish ON user_marks(user_id, fish_id);
   `);
 }
