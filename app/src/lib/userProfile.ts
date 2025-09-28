@@ -1,5 +1,12 @@
 import { getDb } from "@/lib/db";
 
+export class UserProfileAlreadyExistsError extends Error {
+  constructor(phone: string) {
+    super(`手机号 ${phone} 已存在`);
+    this.name = "UserProfileAlreadyExistsError";
+  }
+}
+
 const db = getDb();
 
 const selectByPhoneStmt = db.prepare<
@@ -23,14 +30,6 @@ const insertStmt = db.prepare<
    VALUES (?, ?, ?, ?)`
 );
 
-const updateStmt = db.prepare<
-  [string, string, string]
->(
-  `UPDATE user_profile
-   SET password = ?, updated_at = ?
-   WHERE phone = ?`
-);
-
 export function getUserProfileByPhone(phone: string) {
   return selectByPhoneStmt.get(phone);
 }
@@ -46,14 +45,8 @@ export function createUserProfile(phone: string, password: string) {
     }
     return profile;
   } catch (error) {
-    // 如果手机号已存在，更新密码
     if (error instanceof Error && error.message.includes("UNIQUE constraint failed")) {
-      updateStmt.run(password, now, phone);
-      const profile = getUserProfileByPhone(phone);
-      if (!profile) {
-        throw new Error("未能在更新后读取用户信息");
-      }
-      return profile;
+      throw new UserProfileAlreadyExistsError(phone);
     }
     throw error;
   }

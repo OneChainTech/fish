@@ -3,6 +3,7 @@ import {
   createUserProfile,
   verifyPhoneCredentials,
   getUserProfileByPhone,
+  UserProfileAlreadyExistsError,
 } from "@/lib/userProfile";
 import { getCollectedFishIds } from "@/lib/progress";
 
@@ -65,6 +66,9 @@ export async function POST(req: NextRequest) {
       collectedFishIds: [],
     });
   } catch (error) {
+    if (error instanceof UserProfileAlreadyExistsError) {
+      return Response.json({ error: "该手机号已注册，请直接登录" }, { status: 409 });
+    }
     console.error("注册失败", error);
     return Response.json({ error: "注册失败" }, { status: 500 });
   }
