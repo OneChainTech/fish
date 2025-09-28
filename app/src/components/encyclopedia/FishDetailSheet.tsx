@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { FishEntry } from "@/data/fish-list";
 import { cn } from "@/lib/utils";
@@ -21,11 +21,22 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
     "idle" | "loading" | "success" | "error"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const { marks, isLoading: marksLoading, addMark } = useMarksSync(fish.id);
+  const { marks, isLoading: marksLoading, addMark, loadMarks } = useMarksSync(fish.id);
   const isLoggedIn = useFishStore((state) => state.isLoggedIn);
   const router = useRouter();
   const displayedMarks = marks.slice(0, MAX_MARKS_PER_FISH);
   const formattedMarks = displayedMarks.map((mark) => mark.address).join(" | ");
+  const [hasQueriedMarks, setHasQueriedMarks] = useState(false);
+
+  useEffect(() => {
+    setHasQueriedMarks(true);
+    loadMarks();
+  }, [loadMarks]);
+
+  const handleReloadMarks = useCallback(() => {
+    setHasQueriedMarks(true);
+    loadMarks();
+  }, [loadMarks]);
 
   const handleLocate = useCallback(async () => {
     if (!isLoggedIn) {
@@ -191,8 +202,8 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
           <p className="mb-4 text-sm leading-6 text-slate-600">{fish.description}</p>
           {/* 稀有度区块已根据需求去除 */}
           <div className="mt-6 space-y-3">
-            {marks.length > 0 && (
-              <div className="rounded-2xl bg-emerald-50 px-5 py-4">
+            <div className="rounded-2xl bg-emerald-50 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
                 <h3 className="flex items-center gap-2 text-base font-semibold text-emerald-700">
                   <svg
                     aria-hidden="true"
@@ -204,9 +215,28 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
                   </svg>
                   标点
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-emerald-700">{formattedMarks}</p>
+                <button
+                  type="button"
+                  onClick={handleReloadMarks}
+                  disabled={marksLoading}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-medium transition",
+                    marksLoading
+                      ? "cursor-not-allowed bg-emerald-100 text-emerald-400"
+                      : "bg-white/80 text-emerald-700 hover:bg-white"
+                  )}
+                >
+                  {marksLoading ? "查询中" : "刷新标点"}
+                </button>
               </div>
-            )}
+              <p className="mt-2 text-sm leading-6 text-emerald-700">
+                {marksLoading
+                  ? "正在查询标点..."
+                  : hasQueriedMarks
+                  ? formattedMarks || "暂无标点记录，记录钓点后即可查看。"
+                  : "点击上方按钮即可查询钓点标记。"}
+              </p>
+            </div>
             {locationStatus === "error" && errorMessage && (
               <div className="rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-xs text-rose-600">
                 {errorMessage}

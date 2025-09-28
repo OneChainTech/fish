@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useFishStore } from "@/store/useFishStore";
 
 export const MAX_MARKS_PER_FISH = 5;
@@ -18,27 +18,47 @@ export function useMarksSync(fishId: string) {
   const [isLoading, setIsLoading] = useState(false);
 
   // 从云端加载标点
-  const loadRemoteMarks = async (uid: string, fid: string): Promise<LocationMark[]> => {
+  const loadMarks = useCallback(async (): Promise<LocationMark[]> => {
+    if (!fishId) {
+      return [];
+    }
+
+    if (!userId || !isLoggedIn) {
+      setMarks([]);
+      setIsLoading(false);
+      return [];
+    }
+
+    setIsLoading(true);
+
     try {
       const response = await fetch(
-        `/api/user/marks?userId=${encodeURIComponent(uid)}&fishId=${encodeURIComponent(fid)}`,
+        `/api/user/marks?userId=${encodeURIComponent(userId)}&fishId=${encodeURIComponent(fishId)}`,
         { cache: "no-store" }
       );
+
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data.marks)) {
-          return data.marks.map((mark: { id: string; address: string; recorded_at: string }) => ({
+          const mapped = data.marks.map((mark: { id: string; address: string; recorded_at: string }) => ({
             id: mark.id,
             address: mark.address,
             recordedAt: mark.recorded_at
           }));
+          const sliced = mapped.slice(0, MAX_MARKS_PER_FISH);
+          setMarks(sliced);
+          return sliced;
         }
       }
     } catch (error) {
       console.warn("从云端加载标点失败", error);
+    } finally {
+      setIsLoading(false);
     }
+
+    setMarks([]);
     return [];
-  };
+  }, [fishId, isLoggedIn, userId]);
 
   // 保存标点到云端
   const saveRemoteMark = async (
@@ -68,48 +88,6 @@ export function useMarksSync(fishId: string) {
     }
     return null;
   };
-
-  // 初始化加载
-  useEffect(() => {
-    if (!userId || !fishId) return;
-
-    if (!isLoggedIn) {
-      setMarks([]);
-      setIsLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    const loadMarks = async () => {
-      setIsLoading(true);
-
-      try {
-        const remoteResponse = await loadRemoteMarks(userId, fishId);
-        if (cancelled) return;
-
-        if (remoteResponse.length > 0) {
-          setMarks(remoteResponse.slice(0, MAX_MARKS_PER_FISH));
-        } else {
-          setMarks([]);
-        }
-      } catch (error) {
-        if (cancelled) return;
-        console.warn("加载标点失败", error);
-        setMarks([]);
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadMarks();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [userId, fishId, isLoggedIn]);
 
   // 添加标点
   const addMark = async (address: string): Promise<LocationMark | null> => {
@@ -153,6 +131,7 @@ export function useMarksSync(fishId: string) {
   return {
     marks,
     isLoading,
+    loadMarks,
     addMark
   };
 }
