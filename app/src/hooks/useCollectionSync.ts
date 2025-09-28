@@ -3,19 +3,15 @@
 import { useEffect, useRef } from "react";
 import { useFishStore } from "@/store/useFishStore";
 
-function getStorageKey(userId: string) {
-  return `fish-collection-${userId}`;
-}
-
 export function useCollectionSync() {
   const userId = useFishStore((state) => state.userId);
   const collectedFishIds = useFishStore((state) => state.collectedFishIds);
   const setCollection = useFishStore((state) => state.setCollection);
   const hasLoadedRemote = useRef(false);
 
-  // 初次加载：从本地读取进度
+  // 初次加载：直接从远端拉取收藏进度
   useEffect(() => {
-    if (!userId || typeof window === "undefined") return;
+    if (!userId) return;
 
     const uid = userId;
     hasLoadedRemote.current = false;
@@ -27,6 +23,7 @@ export function useCollectionSync() {
         const res = await fetch(`/api/user?userId=${encodeURIComponent(uid)}`, {
           method: "GET",
           signal: controller.signal,
+          cache: "no-store",
         });
 
         if (res.ok) {
@@ -42,18 +39,7 @@ export function useCollectionSync() {
         throw new Error("remote fetch failed");
       } catch (error) {
         if (controller.signal.aborted) return;
-        console.warn("远程进度获取失败，回退至本地缓存", error);
-        try {
-          const saved = window.localStorage.getItem(getStorageKey(uid));
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              setCollection(parsed.filter((item: unknown) => typeof item === "string"));
-            }
-          }
-        } catch (err) {
-          console.warn("解析本地收藏数据失败", err);
-        }
+        console.warn("远程进度获取失败", error);
         hasLoadedRemote.current = true;
       }
     }
@@ -63,16 +49,11 @@ export function useCollectionSync() {
     return () => controller.abort();
   }, [userId, setCollection]);
 
-  // 进度变更：写回本地并同步远端
+  // 进度变更：同步远端
   useEffect(() => {
-    if (!userId || typeof window === "undefined" || !hasLoadedRemote.current) return;
+    if (!userId || !hasLoadedRemote.current) return;
 
     const uid = userId;
-
-    window.localStorage.setItem(
-      getStorageKey(uid),
-      JSON.stringify(collectedFishIds)
-    );
 
     const controller = new AbortController();
 

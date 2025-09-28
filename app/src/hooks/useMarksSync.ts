@@ -9,48 +9,11 @@ export type LocationMark = {
   recordedAt: string;
 };
 
-function getLocalMarksKey(userId: string, fishId: string) {
-  return `fish-marks-${userId}-${fishId}`;
-}
-
 export function useMarksSync(fishId: string) {
   const userId = useFishStore((state) => state.userId);
   const isLoggedIn = useFishStore((state) => state.isLoggedIn);
   const [marks, setMarks] = useState<LocationMark[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // 从本地存储加载标点
-  const loadLocalMarks = (uid: string, fid: string): LocationMark[] => {
-    if (typeof window === "undefined") return [];
-    try {
-      const key = getLocalMarksKey(uid, fid);
-      const raw = window.localStorage.getItem(key);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        return parsed.filter((item): item is LocationMark => 
-          item && 
-          typeof item.id === "string" && 
-          typeof item.address === "string" && 
-          typeof item.recordedAt === "string"
-        );
-      }
-    } catch (e) {
-      console.warn("读取本地标点失败", e);
-    }
-    return [];
-  };
-
-  // 保存到本地存储
-  const saveLocalMarks = (uid: string, fid: string, newMarks: LocationMark[]) => {
-    if (typeof window === "undefined") return;
-    try {
-      const key = getLocalMarksKey(uid, fid);
-      window.localStorage.setItem(key, JSON.stringify(newMarks.slice(0, 2)));
-    } catch (e) {
-      console.warn("写入本地标点失败", e);
-    }
-  };
 
   // 从云端加载标点
   const loadRemoteMarks = async (uid: string, fid: string): Promise<LocationMark[]> => {
@@ -120,29 +83,18 @@ export function useMarksSync(fishId: string) {
       setIsLoading(true);
 
       try {
-        const localMarks = loadLocalMarks(userId, fishId);
-        if (!cancelled && localMarks.length > 0) {
-          setMarks(localMarks);
-        }
-
         const remoteResponse = await loadRemoteMarks(userId, fishId);
         if (cancelled) return;
 
         if (remoteResponse.length > 0) {
           setMarks(remoteResponse);
-          saveLocalMarks(userId, fishId, remoteResponse);
-        } else if (localMarks.length > 0) {
-          // 保留已有的本地缓存，避免覆盖掉离线记录
-          saveLocalMarks(userId, fishId, localMarks);
         } else {
           setMarks([]);
-          saveLocalMarks(userId, fishId, []);
         }
       } catch (error) {
         if (cancelled) return;
-        console.warn("加载标点失败，回退到本地", error);
-        const localMarks = loadLocalMarks(userId, fishId);
-        setMarks(localMarks);
+        console.warn("加载标点失败", error);
+        setMarks([]);
       } finally {
         if (!cancelled) {
           setIsLoading(false);
@@ -169,7 +121,6 @@ export function useMarksSync(fishId: string) {
 
     setMarks((prev) => {
       const next = [tempMark, ...prev].slice(0, 2);
-      saveLocalMarks(userId, fishId, next);
       return next;
     });
 
@@ -178,7 +129,6 @@ export function useMarksSync(fishId: string) {
       setMarks((prev) => {
         const filtered = prev.filter((mark) => mark.id !== tempMark.id);
         const next = [remoteMark, ...filtered].slice(0, 2);
-        saveLocalMarks(userId, fishId, next);
         return next;
       });
       return remoteMark;
