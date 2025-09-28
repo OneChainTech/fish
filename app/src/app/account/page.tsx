@@ -65,6 +65,7 @@ export default function AccountPage() {
         setUserId(data.userId);
         setUserPhone(data.phone);
         setIsLoggedIn(true);
+
         if (Array.isArray(data.collectedFishIds)) {
           setCollection(data.collectedFishIds);
         }
@@ -101,16 +102,13 @@ export default function AccountPage() {
         setUserId(data.userId);
         setUserPhone(data.phone);
         setIsLoggedIn(true);
-        if (Array.isArray(data.collectedFishIds)) {
-          setCollection(data.collectedFishIds);
-        }
         
         if (typeof window !== "undefined") {
           window.localStorage.setItem(STORAGE_USER_KEY, data.userId);
           window.localStorage.setItem(STORAGE_PHONE_KEY, data.phone);
         }
         
-        setMessage("注册成功！已导入您的图鉴数据。");
+        setMessage("注册成功！");
         // 注册完成后直接视为登录并返回识鱼页
         router.replace("/identify");
       }
