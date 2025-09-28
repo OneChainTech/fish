@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "reset-password": "node scripts/reset-user-password.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.4.1",
