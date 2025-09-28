@@ -26,15 +26,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
   const router = useRouter();
   const displayedMarks = marks.slice(0, MAX_MARKS_PER_FISH);
   const formattedMarks = displayedMarks.map((mark) => mark.address).join(" | ");
-  const [hasQueriedMarks, setHasQueriedMarks] = useState(false);
-
   useEffect(() => {
-    setHasQueriedMarks(true);
-    loadMarks();
-  }, [loadMarks]);
-
-  const handleReloadMarks = useCallback(() => {
-    setHasQueriedMarks(true);
     loadMarks();
   }, [loadMarks]);
 
@@ -215,26 +207,9 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
                   </svg>
                   标点
                 </h3>
-                <button
-                  type="button"
-                  onClick={handleReloadMarks}
-                  disabled={marksLoading}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium transition",
-                    marksLoading
-                      ? "cursor-not-allowed bg-emerald-100 text-emerald-400"
-                      : "bg-white/80 text-emerald-700 hover:bg-white"
-                  )}
-                >
-                  {marksLoading ? "查询中" : "刷新标点"}
-                </button>
               </div>
               <p className="mt-2 text-sm leading-6 text-emerald-700">
-                {marksLoading
-                  ? "正在查询标点..."
-                  : hasQueriedMarks
-                  ? formattedMarks || "暂无标点记录，记录钓点后即可查看。"
-                  : "点击上方按钮即可查询钓点标记。"}
+                {marksLoading ? "正在查询标点..." : formattedMarks}
               </p>
             </div>
             {locationStatus === "error" && errorMessage && (
