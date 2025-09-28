@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
 import {
-  bindPhoneToUser,
+  createUserProfile,
   verifyPhoneCredentials,
+  getUserProfileByPhone,
 } from "@/lib/userProfile";
-import { getCollectedFishIds } from "@/lib/progress";
+import { getCollectedFishIds, saveCollectedFishIds } from "@/lib/progress";
 
 function normalizePhone(input: unknown) {
   if (typeof input !== "string") return null;
@@ -11,6 +12,7 @@ function normalizePhone(input: unknown) {
   return /^1\d{10}$/.test(digits) ? digits : null;
 }
 
+// 登录API
 export async function GET(req: NextRequest) {
   const phoneParam = req.nextUrl.searchParams.get("phone");
   const passwordParam = req.nextUrl.searchParams.get("password");
@@ -35,30 +37,49 @@ export async function GET(req: NextRequest) {
   });
 }
 
+// 注册API
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
     const phone = normalizePhone(data?.phone);
-    const userId = typeof data?.userId === "string" ? data.userId.trim() : "";
     const password = typeof data?.password === "string" ? data.password : "";
+    const anonUserId = typeof data?.anonUserId === "string" ? data.anonUserId : "";
 
-    if (!phone || !userId || password.length < 6) {
+    if (!phone || password.length < 6) {
       return Response.json(
-        { error: "请求需包含有效的 phone、userId 与不少于 6 位的密码" },
+        { error: "请求需包含有效的手机号与不少于 6 位的密码" },
         { status: 400 }
       );
     }
 
-    const profile = bindPhoneToUser(phone, userId, password);
-    const collectedFishIds = getCollectedFishIds(profile.user_id);
+    // 检查手机号是否已注册
+    const existingProfile = getUserProfileByPhone(phone);
+    if (existingProfile) {
+      return Response.json({ error: "该手机号已注册，请直接登录" }, { status: 409 });
+    }
+
+    // 创建新用户
+    const profile = createUserProfile(phone, password);
+    
+    // 如果提供了匿名用户ID，导入其数据
+    let collectedFishIds: string[] = [];
+    if (anonUserId) {
+      const anonData = getCollectedFishIds(anonUserId);
+      if (anonData.length > 0) {
+        // 将匿名用户的数据迁移到新用户
+        const now = new Date().toISOString();
+        saveCollectedFishIds(profile.phone, JSON.stringify(anonData), now);
+        collectedFishIds = anonData;
+      }
+    }
 
     return Response.json({
       phone: profile.phone,
-      userId: profile.user_id,
+      userId: profile.phone, // 使用手机号作为用户ID
       collectedFishIds,
     });
   } catch (error) {
-    console.error("绑定手机号失败", error);
-    return Response.json({ error: "绑定失败" }, { status: 500 });
+    console.error("注册失败", error);
+    return Response.json({ error: "注册失败" }, { status: 500 });
   }
 }

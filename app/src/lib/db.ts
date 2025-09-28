@@ -13,35 +13,35 @@ const globalStore = globalThis as typeof globalThis & { [globalKey]?: GlobalStor
 
 function initializeSchema(db: DatabaseInstance) {
   db.pragma("journal_mode = WAL");
+  
+  // 创建表结构
   db.exec(`
     CREATE TABLE IF NOT EXISTS user_progress (
       user_id TEXT PRIMARY KEY,
       collected_fish_ids TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    
     CREATE TABLE IF NOT EXISTS user_profile (
-      id TEXT PRIMARY KEY,
-      phone TEXT NOT NULL UNIQUE,
-      user_id TEXT NOT NULL,
-      password_hash TEXT,
-      password_salt TEXT,
+      phone TEXT PRIMARY KEY,
+      password_hash TEXT NOT NULL,
+      password_salt TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS idx_user_profile_phone ON user_profile(phone);
+    
+    CREATE TABLE IF NOT EXISTS user_marks (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      fish_id TEXT NOT NULL,
+      address TEXT NOT NULL,
+      recorded_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      UNIQUE(user_id, fish_id, address)
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_user_marks_user_fish ON user_marks(user_id, fish_id);
   `);
-
-  try {
-    db.exec("ALTER TABLE user_profile ADD COLUMN password_hash TEXT");
-  } catch {
-    // 列已存在时忽略错误，兼容老版本数据库
-  }
-
-  try {
-    db.exec("ALTER TABLE user_profile ADD COLUMN password_salt TEXT");
-  } catch {
-    // 列已存在时忽略错误
-  }
 }
 
 function createConnection() {

@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useFishStore } from "@/store/useFishStore";
+import { useRouter } from "next/navigation";
 
 const PHONE_REGEX = /^1\d{10}$/;
-const STORAGE_PHONE_KEY = "fish-bound-phone";
+const STORAGE_PHONE_KEY = "fish-user-phone";
 const STORAGE_USER_KEY = "fish-anon-id";
 
 function normalizePhone(input: string) {
@@ -14,201 +15,276 @@ function normalizePhone(input: string) {
 
 export default function AccountPage() {
   const userId = useFishStore((state) => state.userId);
+  const userPhone = useFishStore((state) => state.userPhone);
+  const isLoggedIn = useFishStore((state) => state.isLoggedIn);
   const setUserId = useFishStore((state) => state.setUserId);
+  const setUserPhone = useFishStore((state) => state.setUserPhone);
+  const setIsLoggedIn = useFishStore((state) => state.setIsLoggedIn);
   const setCollection = useFishStore((state) => state.setCollection);
+  const resetUser = useFishStore((state) => state.resetUser);
+  const router = useRouter();
 
-  const [currentPhone, setCurrentPhone] = useState<string | null>(null);
-  const [bindPhone, setBindPhone] = useState("");
-  const [bindPassword, setBindPassword] = useState("");
-  const [bindLoading, setBindLoading] = useState(false);
-  const [bindMessage, setBindMessage] = useState<string | null>(null);
-  const [bindError, setBindError] = useState<string | null>(null);
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [recoverPhone, setRecoverPhone] = useState("");
-  const [recoverPassword, setRecoverPassword] = useState("");
-  const [recoverLoading, setRecoverLoading] = useState(false);
-  const [recoverMessage, setRecoverMessage] = useState<string | null>(null);
-  const [recoverError, setRecoverError] = useState<string | null>(null);
-
-  useEffect(() => {
+  async function migrateLocalMarks(fromId: string | null | undefined, toId: string) {
     if (typeof window === "undefined") return;
-    const saved = window.localStorage.getItem(STORAGE_PHONE_KEY);
-    if (saved) {
-      setCurrentPhone(saved);
-    }
-  }, []);
-
-  async function handleBind(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBindError(null);
-    setBindMessage(null);
-
-    if (!userId) {
-      setBindError("尚未生成用户身份，请先识鱼或浏览图鉴以初始化账户。");
-      return;
-    }
-
-    const normalized = normalizePhone(bindPhone);
-    const password = bindPassword.trim();
-    if (!normalized) {
-      setBindError("请输入 11 位大陆手机号。");
-      return;
-    }
-
-    if (password.length < 6) {
-      setBindError("密码需至少 6 位。");
-      return;
-    }
-
-    setBindLoading(true);
+    if (!fromId || fromId === toId) return;
     try {
-      const res = await fetch("/api/user/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: normalized, userId, password }),
-      });
-
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error?.error || "绑定失败");
+      const keys: string[] = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const k = window.localStorage.key(i);
+        if (!k) continue;
+        keys.push(k);
       }
-
-      const data = await res.json();
-      setCurrentPhone(data.phone);
-      setBindMessage("绑定成功，后续可通过手机号恢复收藏进度。");
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(STORAGE_PHONE_KEY, data.phone);
+      const prefix = `fish-marks-${fromId}-`;
+      
+      // 迁移本地标点并同步到云端
+      for (const k of keys) {
+        if (k.startsWith(prefix)) {
+          const payload = window.localStorage.getItem(k);
+          if (!payload) continue;
+          
+          try {
+            const marks = JSON.parse(payload);
+            if (Array.isArray(marks)) {
+              const fishId = k.slice(prefix.length);
+              
+              // 将每个标点同步到云端
+              for (const mark of marks) {
+                if (mark.address) {
+                  try {
+                    await fetch("/api/user/marks", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ 
+                        userId: toId, 
+                        fishId, 
+                        address: mark.address 
+                      })
+                    });
+                  } catch (error) {
+                    console.warn("同步标点到云端失败", error);
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.warn("解析标点数据失败", error);
+          }
+          
+          // 删除旧的本地标点
+          window.localStorage.removeItem(k);
+        }
       }
     } catch (error) {
-      setBindError(error instanceof Error ? error.message : "绑定失败");
-    } finally {
-      setBindLoading(false);
+      console.warn("迁移标点失败", error);
     }
   }
 
-  async function handleRecover(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setRecoverError(null);
-    setRecoverMessage(null);
+    setError(null);
+    setMessage(null);
 
-    const normalized = normalizePhone(recoverPhone);
-    const password = recoverPassword.trim();
+    const normalized = normalizePhone(phone);
+    const passwordTrimmed = password.trim();
+    
     if (!normalized) {
-      setRecoverError("请输入 11 位大陆手机号。");
+      setError("请输入 11 位大陆手机号。");
       return;
     }
 
-    if (password.length < 6) {
-      setRecoverError("密码需至少 6 位。");
+    if (passwordTrimmed.length < 6) {
+      setError("密码需至少 6 位。");
       return;
     }
 
-    setRecoverLoading(true);
+    setLoading(true);
     try {
-      const res = await fetch(
-        `/api/user/profile?phone=${encodeURIComponent(normalized)}&password=${encodeURIComponent(password)}`
-      );
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error?.error || "未找到绑定记录");
-      }
+      if (isLoginMode) {
+        // 登录
+        const res = await fetch(
+          `/api/user/profile?phone=${encodeURIComponent(normalized)}&password=${encodeURIComponent(passwordTrimmed)}`
+        );
+        
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(error?.error || "登录失败");
+        }
 
-      const data = await res.json();
-      setUserId(data.userId);
-      if (Array.isArray(data.collectedFishIds)) {
-        setCollection(data.collectedFishIds);
+        const data = await res.json();
+        // 迁移本地标点（匿名ID -> 手机号）
+        const prevAnonId = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_USER_KEY) : null;
+        await migrateLocalMarks(prevAnonId, data.userId);
+        setUserId(data.userId);
+        setUserPhone(data.phone);
+        setIsLoggedIn(true);
+        if (Array.isArray(data.collectedFishIds)) {
+          setCollection(data.collectedFishIds);
+        }
+        
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(STORAGE_USER_KEY, data.userId);
+          window.localStorage.setItem(STORAGE_PHONE_KEY, data.phone);
+        }
+        
+        setMessage("登录成功！");
+        // 登录完成后返回识鱼页
+        router.replace("/identify");
+      } else {
+        // 注册
+        const res = await fetch("/api/user/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            phone: normalized, 
+            password: passwordTrimmed,
+            anonUserId: userId // 导入当前匿名用户的数据
+          }),
+        });
+
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(error?.error || "注册失败");
+        }
+
+        const data = await res.json();
+        // 迁移本地标点（匿名ID -> 手机号）
+        const prevAnonId = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_USER_KEY) : null;
+        await migrateLocalMarks(prevAnonId, data.userId);
+        setUserId(data.userId);
+        setUserPhone(data.phone);
+        setIsLoggedIn(true);
+        if (Array.isArray(data.collectedFishIds)) {
+          setCollection(data.collectedFishIds);
+        }
+        
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(STORAGE_USER_KEY, data.userId);
+          window.localStorage.setItem(STORAGE_PHONE_KEY, data.phone);
+        }
+        
+        setMessage("注册成功！已导入您的图鉴数据。");
+        // 注册完成后直接视为登录并返回识鱼页
+        router.replace("/identify");
       }
-      setCurrentPhone(data.phone);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(STORAGE_USER_KEY, data.userId);
-        window.localStorage.setItem(STORAGE_PHONE_KEY, data.phone);
-      }
-      setRecoverMessage("恢复成功，已加载绑定账号的收藏进度。");
     } catch (error) {
-      setRecoverError(error instanceof Error ? error.message : "恢复失败");
+      setError(error instanceof Error ? error.message : "操作失败");
     } finally {
-      setRecoverLoading(false);
+      setLoading(false);
     }
+  }
+
+  function handleLogout() {
+    setPhone("");
+    setPassword("");
+    setMessage(null);
+    setError(null);
+    
+    // 清除登录状态，回到匿名用户模式
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(STORAGE_PHONE_KEY);
+      // 重新生成匿名用户ID
+      const newAnonId = crypto.randomUUID();
+      window.localStorage.setItem(STORAGE_USER_KEY, newAnonId);
+      setUserId(newAnonId);
+    }
+    
+    // 重置用户状态
+    resetUser();
+  }
+
+  if (isLoggedIn) {
+    return (
+      <section className="flex flex-1 flex-col gap-5 pb-4">
+        <div className="space-y-5 border border-slate-200 bg-white/90 p-5 shadow-sm">
+          <div className="text-sm">
+            <div className="font-medium text-slate-900">{userPhone}</div>
+            <div className="text-slate-500">已登录</div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full bg-sky-600 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-sky-700"
+          >
+            退出登录
+          </button>
+        </div>
+      </section>
+    );
   }
 
   return (
     <section className="flex flex-1 flex-col gap-5 pb-4">
-      <header>
-        <h1 className="text-2xl font-semibold">我</h1>
-      </header>
+      {/* 移除当前状态显示区域，保持简洁 */}
 
-      <div className="space-y-3 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
-        <div className="flex items-center justify-between text-sm text-slate-500">
-          <span>用户 ID</span>
-          <span className="truncate text-slate-900">
-            {userId ?? "待生成"}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-sm text-slate-500">
-          <span>手机号</span>
-          <span className="text-slate-900">
-            {currentPhone ?? "未绑定"}
-          </span>
-        </div>
+      <div className="flex border border-slate-200 bg-white/90 p-1">
+        <button
+          type="button"
+          onClick={() => setIsLoginMode(true)}
+          className={`flex-1 py-2 text-sm font-medium transition ${
+            isLoginMode
+              ? "bg-sky-600 text-white"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          登录
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsLoginMode(false)}
+          className={`flex-1 py-2 text-sm font-medium transition ${
+            !isLoginMode
+              ? "bg-sky-600 text-white"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          注册
+        </button>
       </div>
 
-      <form onSubmit={handleBind} className="space-y-3 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
-        <h2 className="text-lg font-medium text-slate-900">绑定手机号</h2>
+      <form onSubmit={handleSubmit} className="space-y-3 border border-slate-200 bg-white/90 p-5 shadow-sm">
+        <h2 className="text-lg font-medium text-slate-900">
+          {isLoginMode ? "登录账号" : "注册账号"}
+        </h2>
         <input
           type="tel"
-          value={bindPhone}
-          onChange={(event) => setBindPhone(event.target.value)}
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
           placeholder="手机号"
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+          className="w-full border border-slate-200 px-4 py-3 text-base focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
           inputMode="numeric"
           pattern="[0-9]*"
         />
         <input
           type="password"
-          value={bindPassword}
-          onChange={(event) => setBindPassword(event.target.value)}
-          placeholder="设置密码（至少 6 位）"
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder={isLoginMode ? "密码" : "设置密码（至少 6 位）"}
+          className="w-full border border-slate-200 px-4 py-3 text-base focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
         />
-        {bindError && <p className="text-sm text-red-500">{bindError}</p>}
-        {bindMessage && <p className="text-sm text-emerald-600">{bindMessage}</p>}
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        {message && <p className="text-sm text-emerald-600">{message}</p>}
         <button
           type="submit"
-          className="w-full rounded-2xl bg-sky-500 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-sky-300"
-          disabled={bindLoading}
+          className="w-full bg-sky-600 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-sky-300"
+          disabled={loading}
         >
-          {bindLoading ? "绑定中..." : "完成绑定"}
+          {loading ? (isLoginMode ? "登录中..." : "注册中...") : (isLoginMode ? "登录" : "注册")}
         </button>
       </form>
 
-      <form onSubmit={handleRecover} className="space-y-3 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
-        <h2 className="text-lg font-medium text-slate-900">恢复进度</h2>
-        <input
-          type="tel"
-          value={recoverPhone}
-          onChange={(event) => setRecoverPhone(event.target.value)}
-          placeholder="手机号"
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-          inputMode="numeric"
-          pattern="[0-9]*"
-        />
-        <input
-          type="password"
-          value={recoverPassword}
-          onChange={(event) => setRecoverPassword(event.target.value)}
-          placeholder="密码"
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-        />
-        {recoverError && <p className="text-sm text-red-500">{recoverError}</p>}
-        {recoverMessage && <p className="text-sm text-emerald-600">{recoverMessage}</p>}
-        <button
-          type="submit"
-          className="w-full rounded-2xl bg-emerald-500 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
-          disabled={recoverLoading}
-        >
-          {recoverLoading ? "恢复中..." : "加载账号"}
-        </button>
-      </form>
+      {!isLoginMode && (
+        <div className="border border-blue-200 bg-blue-50 p-4">
+          <p className="text-sm text-blue-800">
+            💡 注册后将自动导入您当前的图鉴收藏，实现多终端数据同步
+          </p>
+        </div>
+      )}
     </section>
   );
 }

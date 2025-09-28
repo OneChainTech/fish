@@ -1,5 +1,4 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
-import { v4 as uuid } from "uuid";
 import { getDb } from "@/lib/db";
 
 const db = getDb();
@@ -7,30 +6,31 @@ const db = getDb();
 const selectByPhoneStmt = db.prepare<
   [string],
   {
-    id: string;
     phone: string;
-    user_id: string;
-    password_hash: string | null;
-    password_salt: string | null;
+    password_hash: string;
+    password_salt: string;
     created_at: string;
     updated_at: string;
   } | undefined
 >(
-  `SELECT id, phone, user_id, password_hash, password_salt, created_at, updated_at
+  `SELECT phone, password_hash, password_salt, created_at, updated_at
    FROM user_profile
    WHERE phone = ?`
 );
 
-const upsertStmt = db.prepare<
-  [string, string, string, string, string, string, string]
+const insertStmt = db.prepare<
+  [string, string, string, string, string]
 >(
-  `INSERT INTO user_profile (id, phone, user_id, password_hash, password_salt, created_at, updated_at)
-   VALUES (?, ?, ?, ?, ?, ?, ?)
-   ON CONFLICT(phone) DO UPDATE SET
-     user_id = excluded.user_id,
-     password_hash = excluded.password_hash,
-     password_salt = excluded.password_salt,
-     updated_at = excluded.updated_at`
+  `INSERT INTO user_profile (phone, password_hash, password_salt, created_at, updated_at)
+   VALUES (?, ?, ?, ?, ?)`
+);
+
+const updateStmt = db.prepare<
+  [string, string, string, string]
+>(
+  `UPDATE user_profile 
+   SET password_hash = ?, password_salt = ?, updated_at = ?
+   WHERE phone = ?`
 );
 
 export function getUserProfileByPhone(phone: string) {
@@ -42,17 +42,36 @@ function derivePassword(password: string, salt: string) {
   return hash.toString("hex");
 }
 
-export function bindPhoneToUser(phone: string, userId: string, password: string) {
+export function createUserProfile(phone: string, password: string) {
   const now = new Date().toISOString();
-  const id = uuid();
   const salt = randomBytes(16).toString("hex");
   const hash = derivePassword(password, salt);
-  upsertStmt.run(id, phone, userId, hash, salt, now, now);
-  const profile = getUserProfileByPhone(phone);
-  if (!profile) {
-    throw new Error("未能在绑定后读取用户信息");
+  
+  try {
+    insertStmt.run(phone, hash, salt, now, now);
+    const profile = getUserProfileByPhone(phone);
+    if (!profile) {
+      throw new Error("未能在创建后读取用户信息");
+    }
+    return profile;
+  } catch (error) {
+    // 如果手机号已存在，更新密码
+    if (error instanceof Error && error.message.includes("UNIQUE constraint failed")) {
+      updateStmt.run(hash, salt, now, phone);
+      const profile = getUserProfileByPhone(phone);
+      if (!profile) {
+        throw new Error("未能在更新后读取用户信息");
+      }
+      return profile;
+    }
+    throw error;
   }
-  return profile;
+}
+
+// 保留旧函数名以兼容现有代码，但内部使用新的实现
+export function bindPhoneToUser(phone: string, userId: string, password: string) {
+  // 忽略userId参数，直接使用phone作为用户ID
+  return createUserProfile(phone, password);
 }
 
 export function verifyPhoneCredentials(phone: string, password: string) {
@@ -68,7 +87,15 @@ export function verifyPhoneCredentials(phone: string, password: string) {
       return null;
     }
     if (timingSafeEqual(computed, stored)) {
-      return profile;
+      // 返回包含phone字段的对象，保持向后兼容
+      return {
+        phone: profile.phone,
+        user_id: profile.phone, // 使用phone作为user_id
+        password_hash: profile.password_hash,
+        password_salt: profile.password_salt,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at
+      };
     }
     return null;
   } catch (error) {

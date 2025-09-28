@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/navigation/BottomNav";
 import { ClientBootstrap } from "@/components/layout/ClientBootstrap";
 import { useCollectionSync } from "@/hooks/useCollectionSync";
 import { navItems } from "@/components/navigation/navItems";
+import { useFishStore } from "@/store/useFishStore";
 import { cn } from "@/lib/utils";
 
 function CollectionSyncGate() {
@@ -17,6 +18,8 @@ function CollectionSyncGate() {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const resolvedPath = !pathname || pathname === "/" ? "/encyclopedia" : pathname;
+  const isLoggedIn = useFishStore((state) => state.isLoggedIn);
+  const userPhone = useFishStore((state) => state.userPhone);
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-slate-100 via-white to-slate-100 text-slate-900">
@@ -28,26 +31,38 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link href="/identify" className="text-base font-semibold text-sky-600">
             鳟鱼季
           </Link>
-          <nav className="flex items-center gap-3 text-xs text-slate-500">
-            {navItems.map((item) => {
-              const active = resolvedPath.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
-                    active
-                      ? "bg-gradient-to-r from-sky-500/10 via-sky-500/20 to-sky-500/10 text-sky-700 shadow-[0_12px_30px_-22px_rgba(14,165,233,0.8)] scale-[1.04]"
-                      : "text-slate-500 hover:bg-sky-500/10 hover:text-sky-700 hover:shadow-[0_10px_26px_-24px_rgba(14,165,233,0.85)] hover:scale-[1.03]"
-                  )}
-                  aria-current={active ? "page" : undefined}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+          <div className="flex items-center gap-4">
+            {/* 用户状态指示器 */}
+            <div className="flex items-center gap-2">
+              <div className={cn(
+                "h-2 w-2 rounded-full",
+                isLoggedIn ? "bg-emerald-500" : "bg-slate-300"
+              )} />
+              <span className="text-xs text-slate-500">
+                {isLoggedIn ? `已登录 ${userPhone?.slice(0, 3)}****${userPhone?.slice(-4)}` : "匿名用户"}
+              </span>
+            </div>
+            <nav className="flex items-center gap-3 text-xs text-slate-500">
+              {navItems.map((item) => {
+                const active = resolvedPath.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
+                      active
+                        ? "bg-gradient-to-r from-sky-500/10 via-sky-500/20 to-sky-500/10 text-sky-700 shadow-[0_12px_30px_-22px_rgba(14,165,233,0.8)] scale-[1.04]"
+                        : "text-slate-500 hover:bg-sky-500/10 hover:text-sky-700 hover:shadow-[0_10px_26px_-24px_rgba(14,165,233,0.85)] hover:scale-[1.03]"
+                    )}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
         </header>
         {children}
       </main>

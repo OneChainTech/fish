@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fishList, type FishEntry } from "@/data/fish-list";
 import { useFishStore } from "@/store/useFishStore";
 import { FishDetailSheet } from "@/components/encyclopedia/FishDetailSheet";
@@ -30,6 +30,8 @@ const rarityFilters: { value: RarityFilter; label: string }[] = [
 
 export default function EncyclopediaPage() {
   const collectedIds = useFishStore((state) => state.collectedFishIds);
+  const userId = useFishStore((state) => state.userId);
+  const setCollection = useFishStore((state) => state.setCollection);
   const collectedSet = useMemo(() => new Set(collectedIds), [collectedIds]);
   const collectedCount = collectedIds.length;
   const [rarityFilter, setRarityFilter] = useState<RarityFilter>("all");
@@ -39,6 +41,24 @@ export default function EncyclopediaPage() {
     if (rarityFilter === "all") return fishList;
     return fishList.filter((fish) => fish.rarity === rarityFilter);
   }, [rarityFilter]);
+
+  // 进入页面时强制拉取一次远端收藏，确保同步
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/user?userId=${encodeURIComponent(userId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data?.collectedFishIds)) {
+            setCollection(
+              data.collectedFishIds.filter((item: unknown) => typeof item === "string")
+            );
+          }
+        }
+      } catch {}
+    })();
+  }, [userId, setCollection]);
 
   return (
     <section className="flex flex-1 flex-col gap-5 pb-4">

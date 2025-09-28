@@ -11,20 +11,29 @@ export type RecognitionResult = {
 
 type FishState = {
   userId: string | null;
+  userPhone: string | null;
+  isLoggedIn: boolean;
   collectedFishIds: string[];
   currentRecognition: RecognitionResult | null;
   setUserId: (userId: string) => void;
+  setUserPhone: (phone: string | null) => void;
+  setIsLoggedIn: (loggedIn: boolean) => void;
   setCollection: (ids: string[]) => void;
   setCurrentRecognition: (result: RecognitionResult | null) => void;
   unlockFish: (fishId: string) => void;
   resetCollection: () => void;
+  resetUser: () => void;
 };
 
 export const useFishStore = create<FishState>((set) => ({
   userId: null,
+  userPhone: null,
+  isLoggedIn: false,
   collectedFishIds: [],
   currentRecognition: null,
   setUserId: (userId) => set({ userId }),
+  setUserPhone: (userPhone) => set({ userPhone }),
+  setIsLoggedIn: (isLoggedIn) => set({ isLoggedIn }),
   setCollection: (ids) => set({ collectedFishIds: Array.from(new Set(ids)) }),
   setCurrentRecognition: (result) => set({ currentRecognition: result }),
   unlockFish: (fishId) =>
@@ -36,4 +45,6 @@ export const useFishStore = create<FishState>((set) => ({
     }),
   resetCollection: () =>
     set({ collectedFishIds: [], currentRecognition: null }),
+  resetUser: () =>
+    set({ userId: null, userPhone: null, isLoggedIn: false }),
 }));

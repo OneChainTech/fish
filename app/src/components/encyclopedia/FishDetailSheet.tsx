@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Image from "next/image";
 import { FishEntry } from "@/data/fish-list";
 import { cn } from "@/lib/utils";
-import { useFishStore } from "@/store/useFishStore";
+import { useMarksSync } from "@/hooks/useMarksSync";
 
 // 移除稀有度显示，相关常量删除
 
@@ -14,72 +14,14 @@ type Props = {
   onClose: () => void;
 };
 
-type LocationMark = {
-  id: string;
-  address: string;
-  recordedAt: string;
-};
-
-function getMarksStorageKey(userId: string, fishId: string) {
-  return `fish-marks-${userId}-${fishId}`;
-}
-
-function isLocationMark(value: unknown): value is LocationMark {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as { id?: unknown; address?: unknown; recordedAt?: unknown };
-  return (
-    typeof candidate.id === "string" &&
-    typeof candidate.address === "string" &&
-    typeof candidate.recordedAt === "string"
-  );
-}
-
 export function FishDetailSheet({ fish, collected, onClose }: Props) {
   const [locationStatus, setLocationStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
-  const [marks, setMarks] = useState<LocationMark[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const userId = useFishStore((state) => state.userId);
+  const { marks, isLoading: marksLoading, addMark } = useMarksSync(fish.id);
 
-  // 初次加载：读取本地持久化的标点
-  useEffect(() => {
-    if (!userId || typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(
-        getMarksStorageKey(userId, fish.id)
-      );
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        const sanitized: LocationMark[] = (parsed as unknown[])
-          .filter(isLocationMark)
-          .slice(0, 2);
-        if (sanitized.length > 0) {
-          setMarks(sanitized);
-        }
-      }
-    } catch (e) {
-      // 解析失败时忽略
-      console.warn("读取本地标点失败", e);
-    }
-  }, [userId, fish.id]);
-
-  // 标点变更时：写回本地
-  useEffect(() => {
-    if (!userId || typeof window === "undefined") return;
-    try {
-      const payload = JSON.stringify(marks.slice(0, 2));
-      window.localStorage.setItem(
-        getMarksStorageKey(userId, fish.id),
-        payload
-      );
-    } catch (e) {
-      console.warn("写入本地标点失败", e);
-    }
-  }, [userId, fish.id, marks]);
-
-  const handleLocate = useCallback(() => {
+  const handleLocate = useCallback(async () => {
     if (!navigator.geolocation) {
       setLocationStatus("error");
       setErrorMessage("当前设备不支持定位");
@@ -118,15 +60,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
 
           const data = await response.json();
           const nextAddress = data.address || data.formattedAddress || "未知地点";
-          setMarks((prev) => {
-            const entry: LocationMark = {
-              id: `${Date.now()}`,
-              address: nextAddress,
-              recordedAt: new Date().toISOString(),
-            };
-            const nextMarks = [entry, ...prev];
-            return nextMarks.slice(0, 2);
-          });
+          await addMark(nextAddress);
           setErrorMessage("");
           setLocationStatus("success");
         } catch (error) {
@@ -152,7 +86,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
         timeout: 10000,
       }
     );
-  }, [fish.id]);
+  }, [fish.id, addMark]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-3 py-6">
@@ -167,7 +101,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
           />
           <button
             onClick={handleLocate}
-            disabled={locationStatus === "loading"}
+            disabled={locationStatus === "loading" || marksLoading}
             aria-label="记录当前钓点"
             title={
               locationStatus === "success"
@@ -185,7 +119,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
                 : "bg-white/90 hover:bg-white"
             )}
           >
-            {locationStatus === "loading" ? (
+            {locationStatus === "loading" || marksLoading ? (
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-[1.5px] border-current border-t-transparent" />
             ) : (
               <svg
