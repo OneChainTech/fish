@@ -21,7 +21,7 @@ export function BottomNav() {
                 className={cn(
                   "group flex flex-col items-center gap-1 rounded-3xl px-5 py-3 text-xs font-medium transition-all duration-200",
                   active
-                    ? "bg-white/90 text-sky-600 shadow-[0_12px_28px_-20px_rgba(2,132,199,0.9)] backdrop-blur"
+                    ? "text-sky-600"
                     : "text-neutral-500 hover:bg-sky-50/80 hover:text-sky-600"
                 )}
                 aria-current={active ? "page" : undefined}
