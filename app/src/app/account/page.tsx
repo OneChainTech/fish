@@ -133,7 +133,7 @@ export default function AccountPage() {
 
   const header = (
     <header className="space-y-2">
-      <h1 className="text-2xl font-semibold">用户</h1>
+      <h1 className="text-2xl font-semibold">登录</h1>
       <p className="text-xs text-slate-500">
         登录后可同步识鱼结果、图鉴收藏与钓点记录，方便在多端持续体验。
       </p>
@@ -190,9 +190,6 @@ export default function AccountPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3 border border-slate-200 bg-white/90 p-5 shadow-sm">
-        <h2 className="text-lg font-medium text-slate-900">
-          {isLoginMode ? "登录账号" : "注册账号"}
-        </h2>
         <input
           type="tel"
           value={phone}
