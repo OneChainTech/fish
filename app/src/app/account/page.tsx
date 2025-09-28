@@ -87,6 +87,11 @@ export default function AccountPage() {
           }),
         });
 
+        if (res.status === 409) {
+          setError("该手机号已注册，请直接登录。");
+          return;
+        }
+
         if (!res.ok) {
           const error = await res.json().catch(() => ({}));
           throw new Error(error?.error || "注册失败");
@@ -220,9 +225,8 @@ export default function AccountPage() {
         </button>
       </form>
 
-      <div className="space-y-1 rounded-2xl bg-slate-50 px-5 py-4 text-xs text-slate-500">
-        <p>· 使用手机号登录即可同步识鱼记录与图鉴收藏。</p>
-        <p>· 登录后支持记录钓点、保存识别历史。</p>
+      <div className="space-y-2 rounded-2xl bg-slate-50 px-5 py-4 text-sm text-slate-600 sm:text-base">
+        <p>· 使用手机号登录即可同步识鱼记录、图鉴收藏，并记录钓点与识别历史。</p>
         <p>· 如需找回密码，请联系管理员协助处理。</p>
       </div>
     </section>
