@@ -21,7 +21,6 @@ type RecognitionResponse = {
 
 export default function IdentifyPage() {
   const isLoggedIn = useFishStore((s) => s.isLoggedIn);
-  const userPhone = useFishStore((s) => s.userPhone);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {

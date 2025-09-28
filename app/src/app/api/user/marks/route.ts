@@ -72,7 +72,14 @@ export async function POST(req: NextRequest) {
         FROM user_marks 
         WHERE user_id = ? AND fish_id = ? AND address = ?
       `);
-      const existingMark = selectStmt.get(userId, fishId, address) as any;
+      const existingMark = selectStmt.get(userId, fishId, address) as {
+        id: string;
+        user_id: string;
+        fish_id: string;
+        address: string;
+        recorded_at: string;
+        created_at: string;
+      } | undefined;
       
       if (existingMark) {
         return Response.json({ 
