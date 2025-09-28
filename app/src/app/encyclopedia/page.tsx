@@ -47,7 +47,9 @@ export default function EncyclopediaPage() {
     if (!userId) return;
     (async () => {
       try {
-        const res = await fetch(`/api/user?userId=${encodeURIComponent(userId)}`);
+        const res = await fetch(`/api/user?userId=${encodeURIComponent(userId)}`, {
+          cache: "no-store",
+        });
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data?.collectedFishIds)) {
