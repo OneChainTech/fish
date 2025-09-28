@@ -1,34 +1,5 @@
 import { NextRequest } from "next/server";
-import { getDb } from "@/lib/db";
-
-const db = getDb();
-const selectStmt = db.prepare<
-  [string],
-  { collected_fish_ids: string } | undefined
->("SELECT collected_fish_ids FROM user_progress WHERE user_id = ?");
-
-const upsertStmt = db.prepare<
-  [string, string, string]
->(
-  `INSERT INTO user_progress (user_id, collected_fish_ids, updated_at)
-   VALUES (?, ?, ?)
-   ON CONFLICT(user_id) DO UPDATE SET
-     collected_fish_ids = excluded.collected_fish_ids,
-     updated_at = excluded.updated_at`
-);
-
-function parseIds(encoded: string | undefined) {
-  if (!encoded) return [] as string[];
-  try {
-    const parsed = JSON.parse(encoded);
-    if (Array.isArray(parsed)) {
-      return parsed.filter((item) => typeof item === "string");
-    }
-  } catch (error) {
-    console.warn("解析数据库收藏数据失败", error);
-  }
-  return [] as string[];
-}
+import { getCollectedFishIds, saveCollectedFishIds } from "@/lib/progress";
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("userId");
@@ -36,8 +7,7 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "缺少 userId 参数" }, { status: 400 });
   }
 
-  const record = selectStmt.get(userId);
-  const collected = parseIds(record?.collected_fish_ids);
+  const collected = getCollectedFishIds(userId);
 
   return Response.json({ collectedFishIds: collected });
 }
@@ -64,7 +34,7 @@ export async function POST(req: NextRequest) {
     const payload = JSON.stringify(sanitized);
     const now = new Date().toISOString();
 
-    upsertStmt.run(userId, payload, now);
+    saveCollectedFishIds(userId, payload, now);
 
     return Response.json({ success: true });
   } catch (error) {
