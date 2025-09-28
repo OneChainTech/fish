@@ -5,6 +5,8 @@ import Image from "next/image";
 import { FishEntry } from "@/data/fish-list";
 import { cn } from "@/lib/utils";
 import { useMarksSync } from "@/hooks/useMarksSync";
+import { useFishStore } from "@/store/useFishStore";
+import { useRouter } from "next/navigation";
 
 // 移除稀有度显示，相关常量删除
 
@@ -20,8 +22,14 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { marks, isLoading: marksLoading, addMark } = useMarksSync(fish.id);
+  const isLoggedIn = useFishStore((state) => state.isLoggedIn);
+  const router = useRouter();
 
   const handleLocate = useCallback(async () => {
+    if (!isLoggedIn) {
+      router.push("/account");
+      return;
+    }
     if (!navigator.geolocation) {
       setLocationStatus("error");
       setErrorMessage("当前设备不支持定位");
@@ -86,7 +94,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
         timeout: 10000,
       }
     );
-  }, [fish.id, addMark]);
+  }, [isLoggedIn, router, fish.id, addMark]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-3 py-6">
