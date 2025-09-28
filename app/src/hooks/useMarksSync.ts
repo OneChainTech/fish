@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useFishStore } from "@/store/useFishStore";
 
+export const MAX_MARKS_PER_FISH = 5;
+
 export type LocationMark = {
   id: string;
   address: string;
@@ -87,7 +89,7 @@ export function useMarksSync(fishId: string) {
         if (cancelled) return;
 
         if (remoteResponse.length > 0) {
-          setMarks(remoteResponse);
+          setMarks(remoteResponse.slice(0, MAX_MARKS_PER_FISH));
         } else {
           setMarks([]);
         }
@@ -119,16 +121,27 @@ export function useMarksSync(fishId: string) {
       recordedAt: new Date().toISOString()
     };
 
+    let reachedLimit = false;
+
     setMarks((prev) => {
-      const next = [tempMark, ...prev].slice(0, 2);
+      if (prev.length >= MAX_MARKS_PER_FISH) {
+        reachedLimit = true;
+        return prev;
+      }
+
+      const next = [tempMark, ...prev].slice(0, MAX_MARKS_PER_FISH);
       return next;
     });
+
+    if (reachedLimit) {
+      return null;
+    }
 
     const remoteMark = await saveRemoteMark(userId, fishId, address);
     if (remoteMark) {
       setMarks((prev) => {
         const filtered = prev.filter((mark) => mark.id !== tempMark.id);
-        const next = [remoteMark, ...filtered].slice(0, 2);
+        const next = [remoteMark, ...filtered].slice(0, MAX_MARKS_PER_FISH);
         return next;
       });
       return remoteMark;
