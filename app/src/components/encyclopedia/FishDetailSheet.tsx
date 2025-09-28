@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import Image from "next/image";
 import { FishEntry } from "@/data/fish-list";
 import { cn } from "@/lib/utils";
-import { useMarksSync } from "@/hooks/useMarksSync";
+import { MAX_MARKS_PER_FISH, useMarksSync } from "@/hooks/useMarksSync";
 import { useFishStore } from "@/store/useFishStore";
 import { useRouter } from "next/navigation";
 
@@ -24,10 +24,17 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
   const { marks, isLoading: marksLoading, addMark } = useMarksSync(fish.id);
   const isLoggedIn = useFishStore((state) => state.isLoggedIn);
   const router = useRouter();
+  const displayedMarks = marks.slice(0, MAX_MARKS_PER_FISH);
+  const formattedMarks = displayedMarks.map((mark) => mark.address).join(" | ");
 
   const handleLocate = useCallback(async () => {
     if (!isLoggedIn) {
       router.push("/account");
+      return;
+    }
+    if (marks.length >= MAX_MARKS_PER_FISH) {
+      setLocationStatus("error");
+      setErrorMessage(`最多可记录${MAX_MARKS_PER_FISH}个标点`);
       return;
     }
     if (!navigator.geolocation) {
@@ -94,7 +101,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
         timeout: 10000,
       }
     );
-  }, [isLoggedIn, router, fish.id, addMark]);
+  }, [isLoggedIn, router, fish.id, addMark, marks.length]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-3 py-6">
@@ -109,10 +116,16 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
           />
           <button
             onClick={handleLocate}
-            disabled={locationStatus === "loading" || marksLoading}
+            disabled={
+              locationStatus === "loading" ||
+              marksLoading ||
+              marks.length >= MAX_MARKS_PER_FISH
+            }
             aria-label="记录当前钓点"
             title={
-              locationStatus === "success"
+              marks.length >= MAX_MARKS_PER_FISH
+                ? `最多可记录${MAX_MARKS_PER_FISH}个标点`
+                : locationStatus === "success"
                 ? `已记录（共${marks.length}条）`
                 : locationStatus === "error"
                 ? "重试定位"
@@ -191,16 +204,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
                   </svg>
                   标点
                 </h3>
-                <div className="mt-2 space-y-2 text-sm text-emerald-700">
-                  {marks.map((mark) => (
-                    <p
-                      key={mark.id}
-                      className="border-t border-emerald-100 pt-2 first:border-t-0 first:pt-0"
-                    >
-                      {mark.address}
-                    </p>
-                  ))}
-                </div>
+                <p className="mt-2 text-sm leading-6 text-emerald-700">{formattedMarks}</p>
               </div>
             )}
             {locationStatus === "error" && errorMessage && (
