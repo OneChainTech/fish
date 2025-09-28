@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 const PHONE_REGEX = /^1\d{10}$/;
 const STORAGE_PHONE_KEY = "fish-user-phone";
-const STORAGE_USER_KEY = "fish-anon-id";
+const STORAGE_USER_KEY = "fish-user-id";
 
 function normalizePhone(input: string) {
   const digits = input.replace(/\D/g, "");
@@ -14,7 +14,6 @@ function normalizePhone(input: string) {
 }
 
 export default function AccountPage() {
-  const userId = useFishStore((state) => state.userId);
   const userPhone = useFishStore((state) => state.userPhone);
   const isLoggedIn = useFishStore((state) => state.isLoggedIn);
   const setUserId = useFishStore((state) => state.setUserId);
@@ -22,6 +21,7 @@ export default function AccountPage() {
   const setIsLoggedIn = useFishStore((state) => state.setIsLoggedIn);
   const setCollection = useFishStore((state) => state.setCollection);
   const resetUser = useFishStore((state) => state.resetUser);
+  const resetCollection = useFishStore((state) => state.resetCollection);
   const router = useRouter();
 
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -30,61 +30,6 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  async function migrateLocalMarks(fromId: string | null | undefined, toId: string) {
-    if (typeof window === "undefined") return;
-    if (!fromId || fromId === toId) return;
-    try {
-      const keys: string[] = [];
-      for (let i = 0; i < window.localStorage.length; i++) {
-        const k = window.localStorage.key(i);
-        if (!k) continue;
-        keys.push(k);
-      }
-      const prefix = `fish-marks-${fromId}-`;
-      
-      // 迁移本地标点并同步到云端
-      for (const k of keys) {
-        if (k.startsWith(prefix)) {
-          const payload = window.localStorage.getItem(k);
-          if (!payload) continue;
-          
-          try {
-            const marks = JSON.parse(payload);
-            if (Array.isArray(marks)) {
-              const fishId = k.slice(prefix.length);
-              
-              // 将每个标点同步到云端
-              for (const mark of marks) {
-                if (mark.address) {
-                  try {
-                    await fetch("/api/user/marks", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ 
-                        userId: toId, 
-                        fishId, 
-                        address: mark.address 
-                      })
-                    });
-                  } catch (error) {
-                    console.warn("同步标点到云端失败", error);
-                  }
-                }
-              }
-            }
-          } catch (error) {
-            console.warn("解析标点数据失败", error);
-          }
-          
-          // 删除旧的本地标点
-          window.localStorage.removeItem(k);
-        }
-      }
-    } catch (error) {
-      console.warn("迁移标点失败", error);
-    }
-  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -107,7 +52,6 @@ export default function AccountPage() {
     setLoading(true);
     try {
       if (isLoginMode) {
-        // 登录
         const res = await fetch(
           `/api/user/profile?phone=${encodeURIComponent(normalized)}&password=${encodeURIComponent(passwordTrimmed)}`
         );
@@ -118,9 +62,6 @@ export default function AccountPage() {
         }
 
         const data = await res.json();
-        // 迁移本地标点（匿名ID -> 手机号）
-        const prevAnonId = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_USER_KEY) : null;
-        await migrateLocalMarks(prevAnonId, data.userId);
         setUserId(data.userId);
         setUserPhone(data.phone);
         setIsLoggedIn(true);
@@ -137,14 +78,12 @@ export default function AccountPage() {
         // 登录完成后返回识鱼页
         router.replace("/identify");
       } else {
-        // 注册
         const res = await fetch("/api/user/profile", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            phone: normalized, 
-            password: passwordTrimmed,
-            anonUserId: userId // 导入当前匿名用户的数据
+          body: JSON.stringify({
+            phone: normalized,
+            password: passwordTrimmed
           }),
         });
 
@@ -154,9 +93,6 @@ export default function AccountPage() {
         }
 
         const data = await res.json();
-        // 迁移本地标点（匿名ID -> 手机号）
-        const prevAnonId = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_USER_KEY) : null;
-        await migrateLocalMarks(prevAnonId, data.userId);
         setUserId(data.userId);
         setUserPhone(data.phone);
         setIsLoggedIn(true);
@@ -186,22 +122,28 @@ export default function AccountPage() {
     setMessage(null);
     setError(null);
     
-    // 清除登录状态，回到匿名用户模式
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(STORAGE_PHONE_KEY);
-      // 重新生成匿名用户ID
-      const newAnonId = crypto.randomUUID();
-      window.localStorage.setItem(STORAGE_USER_KEY, newAnonId);
-      setUserId(newAnonId);
+      window.localStorage.removeItem(STORAGE_USER_KEY);
     }
-    
-    // 重置用户状态
+
+    resetCollection();
     resetUser();
   }
+
+  const header = (
+    <header className="space-y-2">
+      <h1 className="text-2xl font-semibold">用户</h1>
+      <p className="text-xs text-slate-500">
+        登录后可同步识鱼结果、图鉴收藏与钓点记录，方便在多端持续体验。
+      </p>
+    </header>
+  );
 
   if (isLoggedIn) {
     return (
       <section className="flex flex-1 flex-col gap-5 pb-4">
+        {header}
         <div className="space-y-5 border border-slate-200 bg-white/90 p-5 shadow-sm">
           <div className="text-sm">
             <div className="font-medium text-slate-900">{userPhone}</div>
@@ -220,7 +162,7 @@ export default function AccountPage() {
 
   return (
     <section className="flex flex-1 flex-col gap-5 pb-4">
-      {/* 移除当前状态显示区域，保持简洁 */}
+      {header}
 
       <div className="flex border border-slate-200 bg-white/90 p-1">
         <button
@@ -278,13 +220,11 @@ export default function AccountPage() {
         </button>
       </form>
 
-      {!isLoginMode && (
-        <div className="border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm text-blue-800">
-            💡 注册后将自动导入您当前的图鉴收藏，实现多终端数据同步
-          </p>
-        </div>
-      )}
+      <div className="space-y-1 rounded-2xl bg-slate-50 px-5 py-4 text-xs text-slate-500">
+        <p>· 使用手机号登录即可同步识鱼记录与图鉴收藏。</p>
+        <p>· 登录后支持记录钓点、保存识别历史。</p>
+        <p>· 如需找回密码，请联系管理员协助处理。</p>
+      </div>
     </section>
   );
 }

@@ -4,7 +4,7 @@ import {
   verifyPhoneCredentials,
   getUserProfileByPhone,
 } from "@/lib/userProfile";
-import { getCollectedFishIds, saveCollectedFishIds } from "@/lib/progress";
+import { getCollectedFishIds } from "@/lib/progress";
 
 function normalizePhone(input: unknown) {
   if (typeof input !== "string") return null;
@@ -43,8 +43,6 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
     const phone = normalizePhone(data?.phone);
     const password = typeof data?.password === "string" ? data.password : "";
-    const anonUserId = typeof data?.anonUserId === "string" ? data.anonUserId : "";
-
     if (!phone || password.length < 6) {
       return Response.json(
         { error: "请求需包含有效的手机号与不少于 6 位的密码" },
@@ -60,23 +58,11 @@ export async function POST(req: NextRequest) {
 
     // 创建新用户
     const profile = createUserProfile(phone, password);
-    
-    // 如果提供了匿名用户ID，导入其数据
-    let collectedFishIds: string[] = [];
-    if (anonUserId) {
-      const anonData = getCollectedFishIds(anonUserId);
-      if (anonData.length > 0) {
-        // 将匿名用户的数据迁移到新用户
-        const now = new Date().toISOString();
-        saveCollectedFishIds(profile.phone, JSON.stringify(anonData), now);
-        collectedFishIds = anonData;
-      }
-    }
 
     return Response.json({
       phone: profile.phone,
       userId: profile.phone, // 使用手机号作为用户ID
-      collectedFishIds,
+      collectedFishIds: [],
     });
   } catch (error) {
     console.error("注册失败", error);

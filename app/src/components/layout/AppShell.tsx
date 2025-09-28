@@ -39,7 +39,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 isLoggedIn ? "bg-emerald-500" : "bg-slate-300"
               )} />
               <span className="text-xs text-slate-500">
-                {isLoggedIn ? `已登录 ${userPhone?.slice(0, 3)}****${userPhone?.slice(-4)}` : "匿名用户"}
+                {isLoggedIn
+                  ? `已登录 ${userPhone?.slice(0, 3)}****${userPhone?.slice(-4)}`
+                  : "未登录"}
               </span>
             </div>
             <nav className="flex items-center gap-3 text-xs text-slate-500">

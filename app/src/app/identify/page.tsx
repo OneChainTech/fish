@@ -3,11 +3,11 @@
 import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { RecognitionSummary } from "@/components/identify/RecognitionSummary";
-import Link from "next/link";
 import { useFishStore } from "@/store/useFishStore";
 import { CameraIcon } from "@/components/ui/IconSet";
 import { fishingTips } from "@/data/fishing-tips";
 import { compressImage } from "@/lib/imageCompression";
+import { useRouter } from "next/navigation";
 
 type RecognitionResponse = {
   status: string;
@@ -21,11 +21,7 @@ type RecognitionResponse = {
 
 export default function IdentifyPage() {
   const isLoggedIn = useFishStore((s) => s.isLoggedIn);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const router = useRouter();
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
@@ -66,6 +62,11 @@ export default function IdentifyPage() {
     imageDataUrl: string | null,
     type: string | null,
   ) => {
+    if (!isLoggedIn) {
+      router.push("/account");
+      return;
+    }
+
     if (!imageDataUrl || !type) {
       setError("请先拍摄照片或选择图片。");
       return;
@@ -109,6 +110,11 @@ export default function IdentifyPage() {
   };
 
   const handleFileSelect = async (file: File | null) => {
+    if (!isLoggedIn) {
+      router.push("/account");
+      return;
+    }
+
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setError("仅支持图片文件，请重新选择。");
@@ -135,11 +141,20 @@ export default function IdentifyPage() {
   };
 
   const handleOpenCamera = () => {
+    if (!isLoggedIn) {
+      router.push("/account");
+      return;
+    }
     cameraInputRef.current?.click();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!isLoggedIn) {
+      router.push("/account");
+      return;
+    }
 
     await recognizeImage(preview, mimeType);
   };
@@ -147,21 +162,7 @@ export default function IdentifyPage() {
   return (
     <section className="flex flex-1 flex-col gap-6 pb-6">
       <header className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">识鱼</h1>
-          <Link
-            href="/account"
-            className="flex items-center gap-2 rounded-full px-3 py-1 text-xs text-white bg-sky-500/80 hover:bg-sky-400/80 active:scale-[0.99] transition"
-          >
-            {!isClient ? (
-              <span className="inline-flex h-6 items-center justify-center rounded-full px-2">登录</span>
-            ) : isLoggedIn ? (
-              <span className="inline-flex h-6 items-center justify-center rounded-full px-2">退出</span>
-            ) : (
-              <span className="inline-flex h-6 items-center justify-center rounded-full px-2">登录</span>
-            )}
-          </Link>
-        </div>
+        <h1 className="text-2xl font-semibold">识鱼</h1>
         <p className="text-xs text-slate-500">
           拍摄清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
         </p>

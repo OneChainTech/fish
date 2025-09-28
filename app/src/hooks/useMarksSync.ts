@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFishStore } from "@/store/useFishStore";
 
 export type LocationMark = {
@@ -18,7 +18,6 @@ export function useMarksSync(fishId: string) {
   const isLoggedIn = useFishStore((state) => state.isLoggedIn);
   const [marks, setMarks] = useState<LocationMark[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const hasLoadedRemote = useRef(false);
 
   // 从本地存储加载标点
   const loadLocalMarks = (uid: string, fid: string): LocationMark[] => {
@@ -102,39 +101,44 @@ export function useMarksSync(fishId: string) {
   useEffect(() => {
     if (!userId || !fishId) return;
 
+    if (!isLoggedIn) {
+      setMarks([]);
+      setIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
     const loadMarks = async () => {
       setIsLoading(true);
-      hasLoadedRemote.current = false;
 
       try {
-        if (isLoggedIn) {
-          // 已登录用户：从云端加载
-          const remoteMarks = await loadRemoteMarks(userId, fishId);
-          setMarks(remoteMarks);
-          saveLocalMarks(userId, fishId, remoteMarks);
-          hasLoadedRemote.current = true;
-        } else {
-          // 匿名用户：从本地加载
-          const localMarks = loadLocalMarks(userId, fishId);
-          setMarks(localMarks);
-          hasLoadedRemote.current = true;
-        }
+        const remoteMarks = await loadRemoteMarks(userId, fishId);
+        if (cancelled) return;
+        setMarks(remoteMarks);
+        saveLocalMarks(userId, fishId, remoteMarks);
       } catch (error) {
+        if (cancelled) return;
         console.warn("加载标点失败，回退到本地", error);
         const localMarks = loadLocalMarks(userId, fishId);
         setMarks(localMarks);
-        hasLoadedRemote.current = true;
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadMarks();
+
+    return () => {
+      cancelled = true;
+    };
   }, [userId, fishId, isLoggedIn]);
 
   // 添加标点
   const addMark = async (address: string): Promise<LocationMark | null> => {
-    if (!userId) return null;
+    if (!userId || !isLoggedIn) return null;
 
     const newMark: LocationMark = {
       id: `${Date.now()}-${Math.random()}`,
@@ -148,15 +152,13 @@ export function useMarksSync(fishId: string) {
     saveLocalMarks(userId, fishId, updatedMarks);
 
     // 如果已登录，同步到云端
-    if (isLoggedIn) {
-      const remoteMark = await saveRemoteMark(userId, fishId, address);
-      if (remoteMark) {
-        // 使用云端返回的ID更新本地数据
-        const finalMarks = [{ ...newMark, id: remoteMark.id }, ...marks].slice(0, 2);
-        setMarks(finalMarks);
-        saveLocalMarks(userId, fishId, finalMarks);
-        return remoteMark;
-      }
+    const remoteMark = await saveRemoteMark(userId, fishId, address);
+    if (remoteMark) {
+      // 使用云端返回的ID更新本地数据
+      const finalMarks = [{ ...newMark, id: remoteMark.id }, ...marks].slice(0, 2);
+      setMarks(finalMarks);
+      saveLocalMarks(userId, fishId, finalMarks);
+      return remoteMark;
     }
 
     return newMark;
