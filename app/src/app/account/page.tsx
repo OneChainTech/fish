@@ -160,6 +160,9 @@ export default function AccountPage() {
     );
   }
 
+  const inputClassName =
+    "w-full border border-slate-200 px-4 py-3 text-[16px] focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200 sm:text-base";
+
   return (
     <section className="flex flex-1 flex-col gap-5 pb-4">
       {header}
@@ -195,7 +198,7 @@ export default function AccountPage() {
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
           placeholder="手机号"
-          className="w-full border border-slate-200 px-4 py-3 text-base focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+          className={inputClassName}
           inputMode="numeric"
           pattern="[0-9]*"
         />
@@ -204,7 +207,7 @@ export default function AccountPage() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder={isLoginMode ? "密码" : "设置密码（至少 6 位）"}
-          className="w-full border border-slate-200 px-4 py-3 text-base focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+          className={inputClassName}
         />
         {error && <p className="text-sm text-red-500">{error}</p>}
         {message && <p className="text-sm text-emerald-600">{message}</p>}
