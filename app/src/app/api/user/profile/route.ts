@@ -24,12 +24,12 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "请提供有效的手机号与密码" }, { status: 400 });
   }
 
-  const profile = verifyPhoneCredentials(phone, password);
+  const profile = await verifyPhoneCredentials(phone, password);
   if (!profile) {
     return Response.json({ error: "手机号或密码不正确" }, { status: 401 });
   }
 
-  const collectedFishIds = getCollectedFishIds(profile.user_id);
+  const collectedFishIds = await getCollectedFishIds(profile.user_id);
 
   return Response.json({
     phone: profile.phone,
@@ -52,13 +52,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 检查手机号是否已注册
-    const existingProfile = getUserProfileByPhone(phone);
+    const existingProfile = await getUserProfileByPhone(phone);
     if (existingProfile) {
       return Response.json({ error: "该手机号已注册，请直接登录" }, { status: 409 });
     }
 
     // 创建新用户
-    const profile = createUserProfile(phone, password);
+    const profile = await createUserProfile(phone, password);
 
     return Response.json({
       phone: profile.phone,

@@ -1,8 +1,6 @@
 import { NextRequest } from "next/server";
-import { getDb } from "@/lib/db";
+import { supabase, type UserMark } from "@/lib/supabase";
 import { v4 as uuid } from "uuid";
-
-const db = getDb();
 
 // 获取用户的标点数据
 export async function GET(req: NextRequest) {
@@ -14,25 +12,21 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    let query = "SELECT id, user_id, fish_id, address, recorded_at, created_at FROM user_marks WHERE user_id = ?";
-    const params: string[] = [userId];
+    let query = supabase
+      .from('user_marks')
+      .select('id, user_id, fish_id, address, recorded_at, created_at')
+      .eq('user_id', userId)
+      .order('recorded_at', { ascending: false });
     
     if (fishId) {
-      query += " AND fish_id = ?";
-      params.push(fishId);
+      query = query.eq('fish_id', fishId);
     }
     
-    query += " ORDER BY recorded_at DESC";
-    
-    const stmt = db.prepare(query);
-    const marks = stmt.all(...params) as Array<{
-      id: string;
-      user_id: string;
-      fish_id: string;
-      address: string;
-      recorded_at: string;
-      created_at: string;
-    }>;
+    const { data: marks, error } = await query;
+
+    if (error) {
+      throw error;
+    }
 
     return Response.json({ marks });
   } catch (error) {
@@ -78,30 +72,51 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString();
     const id = uuid();
 
-    // 使用 INSERT OR IGNORE 避免重复地址的约束冲突
-    const insertStmt = db.prepare(`
-      INSERT OR IGNORE INTO user_marks (id, user_id, fish_id, address, recorded_at, created_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
+    try {
+      // 使用 upsert 避免重复地址的约束冲突
+      const { data, error } = await supabase
+        .from('user_marks')
+        .upsert({
+          id,
+          user_id: userId,
+          fish_id: fishId,
+          address,
+          recorded_at: now,
+          created_at: now
+        }, {
+          onConflict: 'user_id,fish_id,address'
+        })
+        .select()
+        .single();
 
-    const result = insertStmt.run(id, userId, fishId, address, now, now);
+      if (error) {
+        throw error;
+      }
 
-    // 如果没有插入新记录（因为重复），查询现有记录
-    if (result.changes === 0) {
-      const selectStmt = db.prepare(`
-        SELECT id, user_id, fish_id, address, recorded_at, created_at 
-        FROM user_marks 
-        WHERE user_id = ? AND fish_id = ? AND address = ?
-      `);
-      const existingMark = selectStmt.get(userId, fishId, address) as {
-        id: string;
-        user_id: string;
-        fish_id: string;
-        address: string;
-        recorded_at: string;
-        created_at: string;
-      } | undefined;
-      
+      return Response.json({ 
+        success: true, 
+        mark: { 
+          id: data.id, 
+          userId: data.user_id, 
+          fishId: data.fish_id, 
+          address: data.address, 
+          recordedAt: data.recorded_at 
+        }
+      });
+    } catch (error) {
+      // 如果插入失败，尝试查询现有记录
+      const { data: existingMark, error: selectError } = await supabase
+        .from('user_marks')
+        .select('id, user_id, fish_id, address, recorded_at, created_at')
+        .eq('user_id', userId)
+        .eq('fish_id', fishId)
+        .eq('address', address)
+        .single();
+
+      if (selectError) {
+        throw error; // 抛出原始插入错误
+      }
+
       if (existingMark) {
         return Response.json({ 
           success: true, 
@@ -114,12 +129,9 @@ export async function POST(req: NextRequest) {
           }
         });
       }
-    }
 
-    return Response.json({ 
-      success: true, 
-      mark: { id, userId, fishId, address, recordedAt: now }
-    });
+      throw error; // 如果查询也失败，抛出原始错误
+    }
   } catch (error) {
     console.error("保存标点数据失败", error);
     return Response.json({ error: "保存失败" }, { status: 500 });
@@ -159,10 +171,13 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const deleteStmt = db.prepare("DELETE FROM user_marks WHERE id = ? AND user_id = ?");
-    const result = deleteStmt.run(markId, userId);
+    const { error } = await supabase
+      .from('user_marks')
+      .delete()
+      .eq('id', markId)
+      .eq('user_id', userId);
 
-    if (result.changes === 0) {
+    if (error) {
       return Response.json({ error: "标点不存在或无权限删除" }, { status: 404 });
     }
 

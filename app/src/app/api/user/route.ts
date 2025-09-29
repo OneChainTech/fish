@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "缺少 userId 参数" }, { status: 400 });
   }
 
-  const collected = getCollectedFishIds(userId);
+  const collected = await getCollectedFishIds(userId);
 
   return Response.json({ collectedFishIds: collected });
 }
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     const payload = JSON.stringify(sanitized);
     const now = new Date().toISOString();
 
-    saveCollectedFishIds(userId, payload, now);
+    await saveCollectedFishIds(userId, payload, now);
 
     return Response.json({ success: true });
   } catch (error) {

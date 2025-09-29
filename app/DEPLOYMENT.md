@@ -7,11 +7,15 @@
 在部署环境中，建议设置以下环境变量：
 
 ```bash
-# 生产环境数据库路径
-SQLITE_PATH=/tmp/fish.db
+# Supabase 配置（推荐用于生产环境）
+NEXT_PUBLIC_SUPABASE_URL=https://yaxnoxulndieokgcprbx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheG5veHVsbmRpZW9rZ2NwcmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTExNzgsImV4cCI6MjA3NDY4NzE3OH0.IVtY6KCRubhty9l2HBHVOmfkOGaS6Fa0DLiexNsdsIs
 
-# 或者使用其他可写目录
-SQLITE_PATH=/var/lib/fish/fish.db
+# 数据库选择（可选，默认为 Supabase）
+USE_SUPABASE=true
+
+# 传统 SQLite 配置（已弃用，仅用于开发环境）
+SQLITE_PATH=/tmp/fish.db
 ```
 
 ### 部署平台特定配置
@@ -19,20 +23,25 @@ SQLITE_PATH=/var/lib/fish/fish.db
 #### Vercel
 ```bash
 # 在 Vercel 环境变量中设置
-SQLITE_PATH=/tmp/fish.db
+NEXT_PUBLIC_SUPABASE_URL=https://yaxnoxulndieokgcprbx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheG5veHVsbmRpZW9rZ2NwcmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTExNzgsImV4cCI6MjA3NDY4NzE3OH0.IVtY6KCRubhty9l2HBHVOmfkOGaS6Fa0DLiexNsdsIs
+USE_SUPABASE=true
 ```
 
 #### Railway
 ```bash
 # 在 Railway 环境变量中设置
-SQLITE_PATH=/tmp/fish.db
+NEXT_PUBLIC_SUPABASE_URL=https://yaxnoxulndieokgcprbx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheG5veHVsbmRpZW9rZ2NwcmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTExNzgsImV4cCI6MjA3NDY4NzE3OH0.IVtY6KCRubhty9l2HBHVOmfkOGaS6Fa0DLiexNsdsIs
+USE_SUPABASE=true
 ```
 
 #### Docker
 ```dockerfile
-# 在 Dockerfile 中创建数据目录
-RUN mkdir -p /var/lib/fish
-ENV SQLITE_PATH=/var/lib/fish/fish.db
+# 在 Dockerfile 中设置环境变量
+ENV NEXT_PUBLIC_SUPABASE_URL=https://yaxnoxulndieokgcprbx.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheG5veHVsbmRpZW9rZ2NwcmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTExNzgsImV4cCI6MjA3NDY4NzE3OH0.IVtY6KCRubhty9l2HBHVOmfkOGaS6Fa0DLiexNsdsIs
+ENV USE_SUPABASE=true
 ```
 
 ### 备用方案
@@ -44,15 +53,18 @@ ENV SQLITE_PATH=/var/lib/fish/fish.db
 
 ### 推荐的生产环境配置
 
-1. **使用外部数据库**（推荐）：
-   - PostgreSQL
-   - MySQL
-   - MongoDB
+1. **使用 Supabase**（推荐）：
+   - 云托管的 PostgreSQL 数据库
+   - 自动备份和扩展
+   - 内置认证和实时功能
+   - 设置环境变量 `USE_SUPABASE=true`
 
-2. **使用持久化存储**：
+2. **使用传统 SQLite**（仅开发环境）：
    - 设置 `SQLITE_PATH` 到可写目录
    - 确保目录权限正确
+   - 定期备份数据库文件
 
 3. **监控和备份**：
-   - 定期备份数据库文件
-   - 监控磁盘空间使用
+   - Supabase 提供自动备份
+   - 监控数据库性能
+   - 设置适当的 RLS 策略
