@@ -14,9 +14,28 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const data = await req.json();
-    const userId = data?.userId;
-    const collectedFishIds = Array.isArray(data?.collectedFishIds)
+    const rawBody = await req.text();
+
+    if (!rawBody || rawBody.trim().length === 0) {
+      return Response.json(
+        { error: "请求体为空，需提供 userId 与 collectedFishIds[]" },
+        { status: 400 }
+      );
+    }
+
+    let data: Record<string, unknown>;
+    try {
+      data = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch (parseError) {
+      console.warn("用户进度请求体解析失败", parseError);
+      return Response.json(
+        { error: "请求体格式错误，需提供合法 JSON" },
+        { status: 400 }
+      );
+    }
+
+    const userId = typeof data.userId === "string" ? data.userId : null;
+    const collectedFishIds = Array.isArray(data.collectedFishIds)
       ? (data.collectedFishIds as string[])
       : null;
 

@@ -44,8 +44,29 @@ export async function GET(req: NextRequest) {
 // 保存标点数据
 export async function POST(req: NextRequest) {
   try {
-    const data = await req.json();
-    const { userId, fishId, address } = data;
+    const rawBody = await req.text();
+
+    if (!rawBody || rawBody.trim().length === 0) {
+      return Response.json(
+        { error: "请求体为空，需提供 userId、fishId 与 address" },
+        { status: 400 }
+      );
+    }
+
+    let data: Record<string, unknown>;
+    try {
+      data = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch (parseError) {
+      console.warn("标点请求体解析失败", parseError);
+      return Response.json(
+        { error: "请求体格式错误，需提供合法 JSON" },
+        { status: 400 }
+      );
+    }
+
+    const userId = typeof data.userId === "string" ? data.userId : null;
+    const fishId = typeof data.fishId === "string" ? data.fishId : null;
+    const address = typeof data.address === "string" ? data.address : null;
 
     if (!userId || !fishId || !address) {
       return Response.json(
@@ -108,8 +129,28 @@ export async function POST(req: NextRequest) {
 // 删除标点数据
 export async function DELETE(req: NextRequest) {
   try {
-    const data = await req.json();
-    const { userId, markId } = data;
+    const rawBody = await req.text();
+
+    if (!rawBody || rawBody.trim().length === 0) {
+      return Response.json(
+        { error: "请求体为空，需提供 userId 与 markId" },
+        { status: 400 }
+      );
+    }
+
+    let data: Record<string, unknown>;
+    try {
+      data = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch (parseError) {
+      console.warn("删除标点请求体解析失败", parseError);
+      return Response.json(
+        { error: "请求体格式错误，需提供合法 JSON" },
+        { status: 400 }
+      );
+    }
+
+    const userId = typeof data.userId === "string" ? data.userId : null;
+    const markId = typeof data.markId === "string" ? data.markId : null;
 
     if (!userId || !markId) {
       return Response.json(

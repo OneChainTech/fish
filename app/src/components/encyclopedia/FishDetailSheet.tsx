@@ -26,6 +26,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
   const router = useRouter();
   const displayedMarks = marks.slice(0, MAX_MARKS_PER_FISH);
   const formattedMarks = displayedMarks.map((mark) => mark.address).join(" | ");
+  const shouldShowMarksSection = displayedMarks.length > 0;
   useEffect(() => {
     loadMarks();
   }, [loadMarks]);
@@ -143,7 +144,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
                 : "bg-white/90 hover:bg-white"
             )}
           >
-            {locationStatus === "loading" || marksLoading ? (
+            {locationStatus === "loading" ? (
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-[1.5px] border-current border-t-transparent" />
             ) : (
               <svg
@@ -194,24 +195,24 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
           <p className="mb-4 text-sm leading-6 text-slate-600">{fish.description}</p>
           {/* 稀有度区块已根据需求去除 */}
           <div className="mt-6 space-y-3">
-            <div className="rounded-2xl bg-emerald-50 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="flex items-center gap-2 text-base font-semibold text-emerald-700">
-                  <svg
-                    aria-hidden="true"
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M12 2a7 7 0 0 0-7 7c0 5.25 6.03 11.23 6.29 11.49a1 1 0 0 0 1.42 0C12.97 20.23 19 14.25 19 9a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z" />
-                  </svg>
-                  标点
-                </h3>
+            {shouldShowMarksSection && (
+              <div className="rounded-2xl bg-emerald-50 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="flex items-center gap-2 text-base font-semibold text-emerald-700">
+                    <svg
+                      aria-hidden="true"
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M12 2a7 7 0 0 0-7 7c0 5.25 6.03 11.23 6.29 11.49a1 1 0 0 0 1.42 0C12.97 20.23 19 14.25 19 9a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z" />
+                    </svg>
+                    标点
+                  </h3>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-emerald-700">{formattedMarks}</p>
               </div>
-              <p className="mt-2 text-sm leading-6 text-emerald-700">
-                {marksLoading ? "正在查询标点..." : formattedMarks}
-              </p>
-            </div>
+            )}
             {locationStatus === "error" && errorMessage && (
               <div className="rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-xs text-rose-600">
                 {errorMessage}
