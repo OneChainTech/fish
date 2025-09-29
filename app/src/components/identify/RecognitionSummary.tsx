@@ -89,16 +89,15 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
     }
 
     if (justUnlocked) {
-      setShowCelebration(true);
-      // mobile light haptic (typed refinement, no any)
       if (typeof window !== "undefined" && "vibrate" in navigator) {
         const nav = navigator as Navigator & {
           vibrate?: (pattern: number | number[]) => boolean;
         };
         try {
-          nav.vibrate?.(18);
+          nav.vibrate?.([16, 12]);
         } catch {}
       }
+      setShowCelebration(true);
     } else {
       setShowCelebration(false);
     }
