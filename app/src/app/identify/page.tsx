@@ -118,13 +118,38 @@ export default function IdentifyPage() {
         if (matchedFish) {
           setTargetFishId(matchedFish.id);
           setRecognizedFish(matchedFish);
+          // 在隐藏轮播前预加载目标图片，避免切换瞬间空白
+          try {
+            if (typeof window !== "undefined") {
+              await new Promise<void>((resolve) => {
+                const img = new window.Image();
+                img.src = matchedFish.image;
+                // decode 更可靠，附带超时兜底
+                const timer = window.setTimeout(() => resolve(), 1200);
+                // 有些环境不支持 decode，则使用 onload
+                const settle = () => {
+                  window.clearTimeout(timer);
+                  resolve();
+                };
+                if (typeof (img as any).decode === "function") {
+                  (img as any)
+                    .decode()
+                    .then(settle)
+                    .catch(settle);
+                } else {
+                  img.onload = settle;
+                  img.onerror = settle;
+                }
+              });
+            }
+          } catch {}
+          // 预加载完成后再收起轮播
+          setShowCarousel(false);
         }
       }
       
       setResult(recognized);
-      
-      // 识别完成后停止轮播
-      setShowCarousel(false);
+      // 注意：隐藏轮播的操作已在成功分支中按预加载后处理
     } catch (err) {
       console.error(err);
       setError("识别请求异常，请检查网络后重试。");
@@ -206,7 +231,6 @@ export default function IdentifyPage() {
             {showCarousel ? (
               <FishCarousel
                 isAnimating={isLoading}
-                onAnimationComplete={() => setShowCarousel(false)}
               />
           ) : recognizedFish ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6">
@@ -216,6 +240,7 @@ export default function IdentifyPage() {
                   alt={recognizedFish.name_cn}
                   fill
                   sizes="(max-width: 768px) 144px, 176px"
+                  priority
                   className="object-contain"
                   unoptimized
                 />

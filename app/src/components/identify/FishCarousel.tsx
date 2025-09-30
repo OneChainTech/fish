@@ -11,6 +11,7 @@ interface FishCarouselProps {
 
 export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselProps) {
   const [positionPx, setPositionPx] = useState(0);
+  const [firstImageLoaded, setFirstImageLoaded] = useState(false);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,9 +26,12 @@ export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselP
         rafRef.current = null;
       }
       lastTsRef.current = null;
-      onAnimationComplete?.();
       return;
     }
+
+    // 重置位置并等待首图加载期间显示占位
+    setPositionPx(0);
+    setFirstImageLoaded(false);
 
     const tick = (ts: number) => {
       if (lastTsRef.current == null) {
@@ -68,30 +72,45 @@ export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselP
             >
               {[0, 1].map(rep => (
                 <div key={rep} className="flex items-center" style={{ width: `${totalWidth}px` }}>
-                  {fishList.map((fish) => (
-                    <div
-                      key={`${rep}-${fish.id}`}
-                      className="flex-shrink-0 flex flex-col items-center justify-center"
-                      style={{ width: `${ITEM_WIDTH}px` }}
-                    >
-                      <div className="relative h-48 w-48">
-                        <Image
-                          src={fish.image}
-                          alt={fish.name_cn}
-                          fill
-                          sizes="192px"
-                          className="object-contain opacity-70"
-                          unoptimized
-                        />
+                  {fishList.map((fish, index) => {
+                    const isPriority = rep === 0 && index < 3; // 提前加载前3张
+                    return (
+                      <div
+                        key={`${rep}-${fish.id}`}
+                        className="flex-shrink-0 flex flex-col items-center justify-center"
+                        style={{ width: `${ITEM_WIDTH}px` }}
+                      >
+                        <div className="relative h-48 w-48">
+                          <Image
+                            src={fish.image}
+                            alt={fish.name_cn}
+                            fill
+                            sizes="192px"
+                            className="object-contain opacity-70"
+                            priority={isPriority}
+                            loading={isPriority ? undefined : "lazy"}
+                            onLoad={() => {
+                              if (!firstImageLoaded) setFirstImageLoaded(true);
+                            }}
+                            unoptimized
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ))}
             </div>
           );
         })()}
       </div>
+
+      {/* 首图加载占位，避免白屏 */}
+      {!firstImageLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-slate-200" />
+        </div>
+      )}
     </div>
   );
 }
