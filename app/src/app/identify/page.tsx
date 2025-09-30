@@ -194,9 +194,9 @@ export default function IdentifyPage() {
           }`}
         >
           {showCarousel ? (
-            <FishCarousel 
+            <FishCarousel
               isAnimating={isLoading}
-              targetFishId={targetFishId}
+              targetFishId={targetFishId ?? undefined}
               onAnimationComplete={() => setShowCarousel(false)}
             />
           ) : preview ? (
