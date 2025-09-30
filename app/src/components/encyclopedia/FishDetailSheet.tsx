@@ -23,6 +23,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { marks, isLoading: marksLoading, addMark, loadMarks } = useMarksSync(fish.id);
   const isLoggedIn = useFishStore((state) => state.isLoggedIn);
+  const savePendingMarks = useFishStore((state) => state.savePendingMarks);
   const router = useRouter();
   const displayedMarks = marks.slice(0, MAX_MARKS_PER_FISH);
   const formattedMarks = displayedMarks.map((mark) => mark.address).join(" | ");
@@ -30,6 +31,14 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
   useEffect(() => {
     loadMarks();
   }, [loadMarks]);
+
+  // 组件关闭时保存待保存的标记
+  useEffect(() => {
+    return () => {
+      // 组件卸载时保存待保存的标记
+      savePendingMarks();
+    };
+  }, [savePendingMarks]);
 
   const handleLocate = useCallback(async () => {
     if (!isLoggedIn) {

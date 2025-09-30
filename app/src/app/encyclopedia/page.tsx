@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { fishList, type FishEntry } from "@/data/fish-list";
 import { useFishStore } from "@/store/useFishStore";
 import { FishDetailSheet } from "@/components/encyclopedia/FishDetailSheet";
+import { useGlobalMarksCache } from "@/hooks/useGlobalMarksCache";
 import { cn } from "@/lib/utils";
 
 const rarityTag: Record<FishEntry["rarity"], string> = {
@@ -36,6 +37,9 @@ export default function EncyclopediaPage() {
   const collectedCount = collectedIds.length;
   const [rarityFilter, setRarityFilter] = useState<RarityFilter>("all");
   const [selectedFish, setSelectedFish] = useState<FishEntry | null>(null);
+  
+  // 使用全局标记缓存
+  const { loadAllMarks } = useGlobalMarksCache();
 
   const filteredFishList = useMemo(() => {
     if (rarityFilter === "all") return fishList;
@@ -61,6 +65,11 @@ export default function EncyclopediaPage() {
       } catch {}
     })();
   }, [userId, setCollection]);
+
+  // 加载全局标记缓存
+  useEffect(() => {
+    loadAllMarks();
+  }, [loadAllMarks]);
 
   return (
     <section className="flex flex-1 flex-col gap-5 pb-4">
