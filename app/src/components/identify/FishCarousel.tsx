@@ -67,7 +67,7 @@ export function FishCarousel({ isAnimating, onAnimationComplete, onReady }: Fish
   }, [isAnimating, speedPxPerSec, onAnimationComplete]);
 
   return (
-    <div className="relative h-56 w-full overflow-hidden rounded-xl bg-white">
+    <div className="relative h-56 w-full overflow-hidden rounded-xl bg-transparent">
       {/* 横向滚动的鱼类列表 */}
       <div 
         ref={containerRef}
@@ -84,7 +84,7 @@ export function FishCarousel({ isAnimating, onAnimationComplete, onReady }: Fish
               {[0, 1].map(rep => (
                 <div key={rep} className="flex items-center" style={{ width: `${totalWidth}px` }}>
                   {fishList.map((fish, index) => {
-                    const isPriority = rep === 0 && index < 3; // 提前加载前3张
+                    const isPriority = rep === 0 && index < 5; // 提前加载前5张
                     return (
                       <div
                         key={`${rep}-${fish.id}`}
