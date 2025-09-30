@@ -232,13 +232,13 @@ export default function IdentifyPage() {
                     alt="预览站位"
                     fill
                     sizes="(max-width: 768px) 100vw, 400px"
-                    className={`absolute inset-0 object-cover transition-opacity duration-400 ${carouselReady ? "opacity-0" : "opacity-100"}`}
+                    className={`absolute inset-0 object-cover transition-opacity duration-450 ease-out ${carouselReady ? "opacity-0" : "opacity-100"}`}
                     unoptimized
                     priority
                   />
                 )}
                 {/* 轮播容器，淡入 */}
-                <div className={`absolute inset-0 transition-opacity duration-400 ${carouselReady ? "opacity-100" : "opacity-0"}`}>
+                <div className={`absolute inset-0 transition-opacity duration-450 ease-out ${carouselReady ? "opacity-100" : "opacity-0"}`}>
                   <FishCarousel
                     isAnimating={isLoading}
                     onReady={() => setCarouselReady(true)}
