@@ -11,7 +11,6 @@ interface FishCarouselProps {
 
 export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselProps) {
   const [positionPx, setPositionPx] = useState(0);
-  const [firstImageLoaded, setFirstImageLoaded] = useState(false);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,9 +28,8 @@ export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselP
       return;
     }
 
-    // 重置位置并等待首图加载期间显示占位
+    // 重置位置
     setPositionPx(0);
-    setFirstImageLoaded(false);
 
     const tick = (ts: number) => {
       if (lastTsRef.current == null) {
@@ -89,9 +87,6 @@ export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselP
                             className="object-contain opacity-70"
                             priority={isPriority}
                             loading={isPriority ? undefined : "lazy"}
-                            onLoad={() => {
-                              if (!firstImageLoaded) setFirstImageLoaded(true);
-                            }}
                             unoptimized
                           />
                         </div>
@@ -104,13 +99,6 @@ export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselP
           );
         })()}
       </div>
-
-      {/* 首图加载占位，避免白屏 */}
-      {!firstImageLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white">
-          <div className="h-10 w-10 animate-pulse rounded-full bg-slate-200" />
-        </div>
-      )}
     </div>
   );
 }
