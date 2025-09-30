@@ -225,6 +225,17 @@ export default function IdentifyPage() {
         >
             {showCarousel ? (
               <div className="relative h-full w-full">
+                {/* 活动效果准备阶段的柔和底色，避免出现空白 */}
+                <div
+                  className={`absolute inset-0 z-0 transition-opacity duration-450 ease-out ${
+                    carouselReady ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <div className="pointer-events-none flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-b from-slate-100 via-white to-slate-100">
+                    <div className="h-12 w-12 animate-pulse rounded-full bg-slate-200" />
+                    <p className="text-xs text-slate-400">正在准备识别动画...</p>
+                  </div>
+                </div>
                 {/* 预览图站位，直到轮播 ready，淡出 */}
                 {preview && (
                   <Image
@@ -232,13 +243,19 @@ export default function IdentifyPage() {
                     alt="预览站位"
                     fill
                     sizes="(max-width: 768px) 100vw, 400px"
-                    className={`absolute inset-0 object-cover transition-opacity duration-450 ease-out ${carouselReady ? "opacity-0" : "opacity-100"}`}
+                    className={`absolute inset-0 z-10 object-cover transition-opacity duration-450 ease-out ${
+                      carouselReady ? "opacity-0" : "opacity-100"
+                    }`}
                     unoptimized
                     priority
                   />
                 )}
                 {/* 轮播容器，淡入 */}
-                <div className={`absolute inset-0 transition-opacity duration-450 ease-out ${carouselReady ? "opacity-100" : "opacity-0"}`}>
+                <div
+                  className={`absolute inset-0 z-20 transition-opacity duration-450 ease-out ${
+                    carouselReady ? "opacity-100" : "opacity-0"
+                  }`}
+                >
                   <FishCarousel
                     isAnimating={isLoading}
                     onReady={() => setCarouselReady(true)}
