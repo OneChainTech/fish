@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { RecognitionSummary } from "@/components/identify/RecognitionSummary";
+import { FishCarousel } from "@/components/identify/FishCarousel";
 import { useFishStore } from "@/store/useFishStore";
 import { CameraIcon } from "@/components/ui/IconSet";
 import { fishingTips } from "@/data/fishing-tips";
+import { fishList } from "@/data/fish-list";
 import { compressImage } from "@/lib/imageCompression";
 import { useRouter } from "next/navigation";
 
@@ -29,6 +31,8 @@ export default function IdentifyPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RecognitionResponse | null>(null);
   const [currentTip, setCurrentTip] = useState<string | null>(null);
+  const [showCarousel, setShowCarousel] = useState(false);
+  const [targetFishId, setTargetFishId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading) {
@@ -82,6 +86,9 @@ export default function IdentifyPage() {
       setIsLoading(true);
       setError(null);
       setResult(null);
+      setShowCarousel(true);
+      setTargetFishId(null);
+      
       const response = await fetch("/api/recognize", {
         method: "POST",
         headers: {
@@ -95,15 +102,27 @@ export default function IdentifyPage() {
           .json()
           .catch(() => ({ error: "识别失败，请稍后再试。" }));
         setError(message || "识别失败，请稍后再试。");
+        setShowCarousel(false);
         return;
       }
 
       const data = await response.json();
       const recognized: RecognitionResponse = data.result;
+      
+      // 如果识别成功，设置目标鱼类ID
+      if (recognized.status === "ok" && recognized.name_cn) {
+        // 根据识别结果找到对应的鱼类ID
+        const matchedFish = fishList.find(fish => fish.name_cn === recognized.name_cn);
+        if (matchedFish) {
+          setTargetFishId(matchedFish.id);
+        }
+      }
+      
       setResult(recognized);
     } catch (err) {
       console.error(err);
       setError("识别请求异常，请检查网络后重试。");
+      setShowCarousel(false);
     } finally {
       setIsLoading(false);
     }
@@ -174,7 +193,13 @@ export default function IdentifyPage() {
             preview ? "bg-slate-50" : "bg-sky-50"
           }`}
         >
-          {preview ? (
+          {showCarousel ? (
+            <FishCarousel 
+              isAnimating={isLoading}
+              targetFishId={targetFishId}
+              onAnimationComplete={() => setShowCarousel(false)}
+            />
+          ) : preview ? (
             <Image
               src={preview}
               alt="待识别鱼类"
