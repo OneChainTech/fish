@@ -32,6 +32,7 @@ export default function IdentifyPage() {
   const [result, setResult] = useState<RecognitionResponse | null>(null);
   const [currentTip, setCurrentTip] = useState<string | null>(null);
   const [showCarousel, setShowCarousel] = useState(false);
+  const [carouselReady, setCarouselReady] = useState(false);
   const [recognizedFish, setRecognizedFish] = useState<FishEntry | null>(null);
 
   useEffect(() => {
@@ -87,6 +88,7 @@ export default function IdentifyPage() {
       setError(null);
       setResult(null);
       setShowCarousel(true);
+      setCarouselReady(false);
       setRecognizedFish(null);
       
       const response = await fetch("/api/recognize", {
@@ -222,25 +224,43 @@ export default function IdentifyPage() {
           }`}
         >
             {showCarousel ? (
-              <FishCarousel
-                isAnimating={isLoading}
-              />
-          ) : recognizedFish ? (
+              <div className="relative h-full w-full">
+                {/* 预览图站位，直到轮播 ready，淡出 */}
+                {preview && (
+                  <Image
+                    src={preview}
+                    alt="预览站位"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    className={`absolute inset-0 object-cover transition-opacity duration-400 ${carouselReady ? "opacity-0" : "opacity-100"}`}
+                    unoptimized
+                    priority
+                  />
+                )}
+                {/* 轮播容器，淡入 */}
+                <div className={`absolute inset-0 transition-opacity duration-400 ${carouselReady ? "opacity-100" : "opacity-0"}`}>
+                  <FishCarousel
+                    isAnimating={isLoading}
+                    onReady={() => setCarouselReady(true)}
+                  />
+                </div>
+              </div>
+            ) : recognizedFish ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6">
-              <div className="relative h-36 w-36 sm:h-44 sm:w-44">
+              <div className="relative h-52 w-52 sm:h-60 sm:w-60">
                 <Image
                   src={recognizedFish.image}
                   alt={recognizedFish.name_cn}
                   fill
-                  sizes="(max-width: 768px) 144px, 176px"
+                  sizes="(max-width: 768px) 208px, 240px"
                   priority
                   className="object-contain"
                   unoptimized
                 />
               </div>
               <div className="space-y-1 text-slate-700">
-                <p className="text-lg font-semibold text-slate-900">{recognizedFish.name_cn}</p>
-                <p className="text-xs uppercase tracking-wide text-slate-500">{recognizedFish.name_lat}</p>
+                <p className="text-base sm:text-lg font-semibold text-slate-900">{recognizedFish.name_cn}</p>
+                <p className="text-[11px] sm:text-xs uppercase tracking-wide text-slate-500">{recognizedFish.name_lat}</p>
               </div>
             </div>
           ) : preview ? (

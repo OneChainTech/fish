@@ -129,7 +129,7 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
   const unlocked = match && result.unlock_fish_id && (result.unlock_confidence ?? 0) >= UNLOCK_THRESHOLD;
 
   return (
-    <div className={`relative space-y-4 ${justUnlocked ? "animate-card-pop" : ""}`}>
+    <div className={`relative space-y-4 px-3 ${justUnlocked ? "animate-card-pop" : ""}`}>
       {showCelebration && (
         <ConfettiCelebration onComplete={() => setShowCelebration(false)} />
       )}

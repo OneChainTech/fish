@@ -7,13 +7,15 @@ import { fishList } from "@/data/fish-list";
 interface FishCarouselProps {
   isAnimating: boolean;
   onAnimationComplete?: () => void;
+  onReady?: () => void;
 }
 
-export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselProps) {
+export function FishCarousel({ isAnimating, onAnimationComplete, onReady }: FishCarouselProps) {
   const [positionPx, setPositionPx] = useState(0);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const readySignaledRef = useRef(false);
 
   const ITEM_WIDTH = 200; // 与布局保持一致
   const speedPxPerSec = 60; // 流动速度（可调）
@@ -32,6 +34,10 @@ export function FishCarousel({ isAnimating, onAnimationComplete }: FishCarouselP
     setPositionPx(0);
 
     const tick = (ts: number) => {
+      if (!readySignaledRef.current) {
+        readySignaledRef.current = true;
+        onReady?.();
+      }
       if (lastTsRef.current == null) {
         lastTsRef.current = ts;
       }
