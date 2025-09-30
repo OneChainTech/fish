@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { fishList, type FishEntry } from "@/data/fish-list";
+import { fishList } from "@/data/fish-list";
 
 interface FishCarouselProps {
   isAnimating: boolean;

@@ -32,7 +32,6 @@ export default function IdentifyPage() {
   const [result, setResult] = useState<RecognitionResponse | null>(null);
   const [currentTip, setCurrentTip] = useState<string | null>(null);
   const [showCarousel, setShowCarousel] = useState(false);
-  const [targetFishId, setTargetFishId] = useState<string | null>(null);
   const [recognizedFish, setRecognizedFish] = useState<FishEntry | null>(null);
 
   useEffect(() => {
@@ -88,7 +87,6 @@ export default function IdentifyPage() {
       setError(null);
       setResult(null);
       setShowCarousel(true);
-      setTargetFishId(null);
       setRecognizedFish(null);
       
       const response = await fetch("/api/recognize", {
@@ -116,26 +114,21 @@ export default function IdentifyPage() {
         // 根据识别结果找到对应的鱼类ID
         const matchedFish = fishList.find(fish => fish.name_cn === recognized.name_cn);
         if (matchedFish) {
-          setTargetFishId(matchedFish.id);
           setRecognizedFish(matchedFish);
           // 在隐藏轮播前预加载目标图片，避免切换瞬间空白
           try {
             if (typeof window !== "undefined") {
               await new Promise<void>((resolve) => {
-                const img = new window.Image();
+                const img: HTMLImageElement = new window.Image();
                 img.src = matchedFish.image;
-                // decode 更可靠，附带超时兜底
                 const timer = window.setTimeout(() => resolve(), 1200);
-                // 有些环境不支持 decode，则使用 onload
                 const settle = () => {
                   window.clearTimeout(timer);
                   resolve();
                 };
-                if (typeof (img as any).decode === "function") {
-                  (img as any)
-                    .decode()
-                    .then(settle)
-                    .catch(settle);
+                // 优先使用 decode，失败则退化到 onload/onerror
+                if (typeof img.decode === "function") {
+                  img.decode().then(settle).catch(settle);
                 } else {
                   img.onload = settle;
                   img.onerror = settle;
