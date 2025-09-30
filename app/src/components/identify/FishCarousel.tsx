@@ -16,6 +16,7 @@ export function FishCarousel({ isAnimating, onAnimationComplete, onReady }: Fish
   const lastTsRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const readySignaledRef = useRef(false);
+  const movedAccumRef = useRef(0);
 
   const ITEM_WIDTH = 200; // 与布局保持一致
   const speedPxPerSec = 60; // 流动速度（可调）
@@ -27,23 +28,29 @@ export function FishCarousel({ isAnimating, onAnimationComplete, onReady }: Fish
         rafRef.current = null;
       }
       lastTsRef.current = null;
+      movedAccumRef.current = 0;
+      readySignaledRef.current = false;
       return;
     }
 
     // 重置位置
     setPositionPx(0);
+    movedAccumRef.current = 0;
+    readySignaledRef.current = false;
 
     const tick = (ts: number) => {
-      if (!readySignaledRef.current) {
-        readySignaledRef.current = true;
-        onReady?.();
-      }
       if (lastTsRef.current == null) {
         lastTsRef.current = ts;
       }
       const deltaMs = ts - lastTsRef.current;
       lastTsRef.current = ts;
       const deltaPx = (speedPxPerSec * deltaMs) / 1000;
+      movedAccumRef.current += deltaPx;
+      // 只有当累计位移超过阈值后才宣布就绪，确保视觉上已“动起来”
+      if (!readySignaledRef.current && movedAccumRef.current >= 4) {
+        readySignaledRef.current = true;
+        onReady?.();
+      }
       setPositionPx(prev => prev + deltaPx);
       rafRef.current = requestAnimationFrame(tick);
     };
