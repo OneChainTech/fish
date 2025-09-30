@@ -7,7 +7,7 @@ import { FishCarousel } from "@/components/identify/FishCarousel";
 import { useFishStore } from "@/store/useFishStore";
 import { CameraIcon } from "@/components/ui/IconSet";
 import { fishingTips } from "@/data/fishing-tips";
-import { fishList } from "@/data/fish-list";
+import { fishList, type FishEntry } from "@/data/fish-list";
 import { compressImage } from "@/lib/imageCompression";
 import { useRouter } from "next/navigation";
 
@@ -33,6 +33,7 @@ export default function IdentifyPage() {
   const [currentTip, setCurrentTip] = useState<string | null>(null);
   const [showCarousel, setShowCarousel] = useState(false);
   const [targetFishId, setTargetFishId] = useState<string | null>(null);
+  const [recognizedFish, setRecognizedFish] = useState<FishEntry | null>(null);
 
   useEffect(() => {
     if (!isLoading) {
@@ -88,6 +89,7 @@ export default function IdentifyPage() {
       setResult(null);
       setShowCarousel(true);
       setTargetFishId(null);
+      setRecognizedFish(null);
       
       const response = await fetch("/api/recognize", {
         method: "POST",
@@ -115,6 +117,7 @@ export default function IdentifyPage() {
         const matchedFish = fishList.find(fish => fish.name_cn === recognized.name_cn);
         if (matchedFish) {
           setTargetFishId(matchedFish.id);
+          setRecognizedFish(matchedFish);
         }
       }
       
@@ -190,7 +193,11 @@ export default function IdentifyPage() {
         {/* 图片预览区域 */}
         <div
           className={`relative h-56 w-full overflow-hidden rounded-xl text-center transition-colors ${
-            preview ? "bg-slate-50" : "bg-sky-50"
+            showCarousel || recognizedFish
+              ? "bg-white"
+              : preview
+                ? "bg-slate-50"
+                : "bg-slate-100"
           }`}
         >
           {showCarousel ? (
@@ -199,6 +206,23 @@ export default function IdentifyPage() {
               targetFishId={targetFishId ?? undefined}
               onAnimationComplete={() => setShowCarousel(false)}
             />
+          ) : recognizedFish ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6">
+              <div className="relative h-36 w-36 sm:h-44 sm:w-44">
+                <Image
+                  src={recognizedFish.image}
+                  alt={recognizedFish.name_cn}
+                  fill
+                  sizes="(max-width: 768px) 144px, 176px"
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+              <div className="space-y-1 text-slate-700">
+                <p className="text-lg font-semibold text-slate-900">{recognizedFish.name_cn}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">{recognizedFish.name_lat}</p>
+              </div>
+            </div>
           ) : preview ? (
             <Image
               src={preview}
@@ -210,10 +234,10 @@ export default function IdentifyPage() {
             />
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sky-100 text-sky-500">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-slate-600">
                 <CameraIcon className="h-6 w-6" />
               </div>
-              <p className="text-sm text-sky-600">拍摄后将自动开始识别</p>
+              <p className="text-sm text-slate-600">拍摄后将自动开始识别</p>
             </div>
           )}
           <input
