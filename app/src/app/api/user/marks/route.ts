@@ -73,6 +73,29 @@ export async function POST(req: NextRequest) {
     const id = uuid();
 
     try {
+      // 先检查当前用户该鱼类的标点数量
+      const { data: existingMarks, error: countError } = await supabase
+        .from('user_marks')
+        .select('id, recorded_at')
+        .eq('user_id', userId)
+        .eq('fish_id', fishId)
+        .order('recorded_at', { ascending: true });
+
+      if (countError) {
+        throw countError;
+      }
+
+      // 如果已经有3个或更多标点，删除最旧的
+      if (existingMarks && existingMarks.length >= 3) {
+        const marksToDelete = existingMarks.slice(0, existingMarks.length - 2); // 保留最新的2个
+        for (const mark of marksToDelete) {
+          await supabase
+            .from('user_marks')
+            .delete()
+            .eq('id', mark.id);
+        }
+      }
+
       // 使用 upsert 避免重复地址的约束冲突
       const { data, error } = await supabase
         .from('user_marks')

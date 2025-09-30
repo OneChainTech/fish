@@ -36,11 +36,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
       router.push("/account");
       return;
     }
-    if (marks.length >= MAX_MARKS_PER_FISH) {
-      setLocationStatus("error");
-      setErrorMessage(`最多可记录${MAX_MARKS_PER_FISH}个标点`);
-      return;
-    }
+    // 移除标点数量限制检查，允许自动顶掉最旧的标点
     if (!navigator.geolocation) {
       setLocationStatus("error");
       setErrorMessage("当前设备不支持定位");
@@ -122,14 +118,11 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
             onClick={handleLocate}
             disabled={
               locationStatus === "loading" ||
-              marksLoading ||
-              marks.length >= MAX_MARKS_PER_FISH
+              marksLoading
             }
             aria-label="记录当前钓点"
             title={
-              marks.length >= MAX_MARKS_PER_FISH
-                ? `最多可记录${MAX_MARKS_PER_FISH}个标点`
-                : locationStatus === "success"
+              locationStatus === "success"
                 ? `已记录（共${marks.length}条）`
                 : locationStatus === "error"
                 ? "重试定位"
@@ -208,6 +201,9 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
                       <path d="M12 2a7 7 0 0 0-7 7c0 5.25 6.03 11.23 6.29 11.49a1 1 0 0 0 1.42 0C12.97 20.23 19 14.25 19 9a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z" />
                     </svg>
                     标点
+                    <span className="text-sm font-normal text-emerald-600">
+                      ({marks.length}/{MAX_MARKS_PER_FISH})
+                    </span>
                   </h3>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-emerald-700">{formattedMarks}</p>

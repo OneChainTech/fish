@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useFishStore } from "@/store/useFishStore";
 
-export const MAX_MARKS_PER_FISH = 5;
+export const MAX_MARKS_PER_FISH = 3;
 
 export type LocationMark = {
   id: string;
@@ -99,21 +99,11 @@ export function useMarksSync(fishId: string) {
       recordedAt: new Date().toISOString()
     };
 
-    let reachedLimit = false;
-
+    // 先更新本地状态，如果超过限制则自动删除最旧的
     setMarks((prev) => {
-      if (prev.length >= MAX_MARKS_PER_FISH) {
-        reachedLimit = true;
-        return prev;
-      }
-
       const next = [tempMark, ...prev].slice(0, MAX_MARKS_PER_FISH);
       return next;
     });
-
-    if (reachedLimit) {
-      return null;
-    }
 
     const remoteMark = await saveRemoteMark(userId, fishId, address);
     if (remoteMark) {
