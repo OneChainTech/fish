@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { supabase, type UserMark } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { v4 as uuid } from "uuid";
 
 // 获取用户的标点数据

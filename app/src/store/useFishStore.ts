@@ -125,7 +125,7 @@ export const useFishStore = create<FishState>((set) => ({
           
           // 更新缓存
           const { setMarksCache } = useFishStore.getState();
-          data.marks?.forEach((mark: any) => {
+          data.marks?.forEach((mark: { id: string; fishId: string; address: string; recordedAt: string }) => {
             const existingMarks = state.marksCache[mark.fishId] || [];
             const newMarks = [mark, ...existingMarks].slice(0, 3);
             setMarksCache(mark.fishId, newMarks);

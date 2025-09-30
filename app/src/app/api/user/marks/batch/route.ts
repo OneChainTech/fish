@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString();
     
     // 去重：按 fishId + address 组合去重
-    const uniqueMarks = marks.reduce((acc: any[], mark: any) => {
+    const uniqueMarks = marks.reduce((acc: { fishId: string; address: string; recordedAt: string }[], mark: { fishId: string; address: string; recordedAt: string }) => {
       const key = `${mark.fishId}-${mark.address}`;
       if (!acc.find(item => `${item.fishId}-${item.address}` === key)) {
         acc.push(mark);
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       return acc;
     }, []);
     
-    const batchData = uniqueMarks.map((mark: any) => ({
+    const batchData = uniqueMarks.map((mark: { fishId: string; address: string; recordedAt: string }) => ({
       id: uuid(),
       user_id: userId,
       fish_id: mark.fishId,

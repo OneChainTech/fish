@@ -17,12 +17,11 @@ export function useMarksSync(fishId: string) {
   const isLoggedIn = useFishStore((state) => state.isLoggedIn);
   const pendingMarks = useFishStore((state) => state.pendingMarks);
   const addPendingMark = useFishStore((state) => state.addPendingMark);
-  const removePendingMark = useFishStore((state) => state.removePendingMark);
   const [marks, setMarks] = useState<LocationMark[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
   // 使用全局标记缓存
-  const { getMarksForFish, addMarkToCache } = useGlobalMarksCache();
+  const { getMarksForFish } = useGlobalMarksCache();
 
   // 从缓存或云端加载标点
   const loadMarks = useCallback(async (): Promise<LocationMark[]> => {
@@ -101,36 +100,8 @@ export function useMarksSync(fishId: string) {
 
     setMarks([]);
     return [];
-  }, [fishId, isLoggedIn, userId, getMarksForFish]);
+  }, [fishId, isLoggedIn, userId, getMarksForFish, pendingMarks]);
 
-  // 保存标点到云端
-  const saveRemoteMark = async (
-    uid: string,
-    fid: string,
-    address: string
-  ): Promise<LocationMark | null> => {
-    try {
-      const response = await fetch("/api/user/marks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: uid, fishId: fid, address })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.mark && typeof data.mark.id === "string") {
-          return {
-            id: data.mark.id,
-            address: data.mark.address,
-            recordedAt: data.mark.recordedAt
-          };
-        }
-      }
-    } catch (error) {
-      console.warn("保存标点到云端失败", error);
-    }
-    return null;
-  };
 
   // 添加标点（本地操作）
   const addMark = async (address: string): Promise<LocationMark | null> => {

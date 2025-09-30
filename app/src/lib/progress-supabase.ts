@@ -1,4 +1,4 @@
-import { supabase, type UserProgress } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export function parseCollectedFishIds(encoded: string | undefined): string[] {
   if (!encoded) return [];

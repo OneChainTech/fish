@@ -110,7 +110,7 @@ export function FishDetailSheet({ fish, collected, onClose }: Props) {
         timeout: 10000,
       }
     );
-  }, [isLoggedIn, router, fish.id, addMark, marks.length]);
+  }, [isLoggedIn, router, fish.id, addMark]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-3 py-6">
