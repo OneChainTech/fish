@@ -122,6 +122,9 @@ export default function IdentifyPage() {
       }
       
       setResult(recognized);
+      
+      // 识别完成后停止轮播
+      setShowCarousel(false);
     } catch (err) {
       console.error(err);
       setError("识别请求异常，请检查网络后重试。");
@@ -200,12 +203,11 @@ export default function IdentifyPage() {
                 : "bg-slate-100"
           }`}
         >
-          {showCarousel ? (
-            <FishCarousel
-              isAnimating={isLoading}
-              targetFishId={targetFishId ?? undefined}
-              onAnimationComplete={() => setShowCarousel(false)}
-            />
+            {showCarousel ? (
+              <FishCarousel
+                isAnimating={isLoading}
+                onAnimationComplete={() => setShowCarousel(false)}
+              />
           ) : recognizedFish ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6">
               <div className="relative h-36 w-36 sm:h-44 sm:w-44">

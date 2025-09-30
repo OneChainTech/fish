@@ -152,18 +152,7 @@ export function RecognitionSummary({ result, isLoading, pendingTip }: Props) {
       {/* 状态提示 */}
       {match && (
         <div className="space-y-2">
-          {unlocked ? (
-            justUnlocked ? (
-              <div className="relative overflow-hidden rounded-xl bg-emerald-50 p-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
-                  <span className="font-medium text-emerald-800">成功解锁：{match.name_cn}</span>
-                </div>
-                <p className="mt-2 text-emerald-700">已同步至图鉴，快去查看详细插画与资料吧！</p>
-                <span className="pointer-events-none absolute inset-0 animate-success-sheen bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.9),transparent)] opacity-0" />
-              </div>
-            ) : null
-          ) : (
+          {unlocked ? null : (
             <div className="flex items-center gap-2 rounded-xl bg-amber-50 p-4 text-sm">
               <div className="h-2 w-2 rounded-full bg-amber-500"></div>
               <span className="text-amber-700">置信度偏低，已保留识别信息但暂未解锁。可尝试拍摄更清晰的照片。</span>

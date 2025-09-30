@@ -1,13 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
 import { PWAInstaller } from "@/components/PWAInstaller";
-
-const notoSans = Noto_Sans_SC({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
 
 export const metadata: Metadata = {
   title: "鳟鱼季",
@@ -37,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={notoSans.variable}>
+    <html lang="zh-CN">
       <body className="bg-slate-50 text-slate-900">
         <PWAInstaller />
         <AppShell>{children}</AppShell>
