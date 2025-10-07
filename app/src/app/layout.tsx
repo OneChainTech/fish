@@ -4,8 +4,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PWAInstaller } from "@/components/PWAInstaller";
 
 export const metadata: Metadata = {
-  title: "鳟鱼季",
-  applicationName: "鳟鱼季",
+  title: "有口",
+  applicationName: "有口",
   description: "拍照识鱼、解锁专属图鉴进度的移动端应用",
   manifest: "/manifest.json",
   icons: {
