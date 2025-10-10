@@ -25,7 +25,7 @@ cp .env.local.example .env.local # 写入实际的 SILICONFLOW_API_KEY（若已�
 npm run dev
 ```
 
-开发服务器默认监听 http://localhost:3000 ，首页自动进入“鱼眼”拍照识别页。
+开发服务器默认监听 <http://localhost:3000> ，首页自动进入"鱼眼"拍照识别页。
 
 ## 目录结构速览
 
@@ -42,9 +42,93 @@ npm run dev
 | 变量 | 说明 |
 | ---- | ---- |
 | `SILICONFLOW_API_KEY` | 智谱 SiliconFlow 平台 API Key，用于访问 `zai-org/GLM-4.5V` 模型 |
-| `SQLITE_PATH` (可选) | 指定 SQLite 数据库存储路径，默认 `var/fish.db` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名密钥 |
 
 > 以上变量仅在服务端使用，不会被注入客户端。
+
+## 数据库配置
+
+### Supabase 设置
+
+本应用使用 Supabase PostgreSQL 数据库进行数据存储，提供云端同步和自动备份功能。
+
+#### 1. 创建 Supabase 项目
+
+1. 访问 [Supabase Dashboard](https://supabase.com/dashboard)
+2. 创建新项目
+3. 获取项目 URL 和匿名密钥
+
+#### 2. 创建数据库表
+
+在 Supabase SQL Editor 中执行以下脚本：
+
+```sql
+-- 创建 user_profile 表
+CREATE TABLE IF NOT EXISTS user_profile (
+  phone TEXT PRIMARY KEY,
+  password TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 创建 user_progress 表
+CREATE TABLE IF NOT EXISTS user_progress (
+  user_id TEXT PRIMARY KEY,
+  collected_fish_ids TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 创建 user_marks 表
+CREATE TABLE IF NOT EXISTS user_marks (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  fish_id TEXT NOT NULL,
+  address TEXT NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, fish_id, address)
+);
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_user_marks_user_fish ON user_marks(user_id, fish_id);
+
+-- 启用行级安全策略 (RLS)
+ALTER TABLE user_profile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_marks ENABLE ROW LEVEL SECURITY;
+
+-- 创建 RLS 策略
+CREATE POLICY "Allow all operations on user_profile" ON user_profile FOR ALL USING (true);
+CREATE POLICY "Allow all operations on user_progress" ON user_progress FOR ALL USING (true);
+CREATE POLICY "Allow all operations on user_marks" ON user_marks FOR ALL USING (true);
+```
+
+#### 3. 部署平台配置
+
+##### Vercel
+
+```bash
+# 在 Vercel 环境变量中设置
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+##### Railway
+
+```bash
+# 在 Railway 环境变量中设置
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+##### Docker
+
+```dockerfile
+# 在 Dockerfile 中设置环境变量
+ENV NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
 ## 核心识别流程
 
@@ -76,7 +160,7 @@ npm run dev
 
 - `GET /api/user?userId=xxx`：返回 `{ collectedFishIds: string[] }`，若不存在则自动初始化。
 - `POST /api/user`：请求体 `{ userId: string, collectedFishIds: string[] }`，服务端会去重后存储。
-- 默认实现使用 SQLite（`better-sqlite3`），适合本地或单机部署，也可切换至 Vercel KV、Supabase、PlanetScale 等托管存储。
+- 使用 Supabase PostgreSQL 存储，支持云端同步和自动备份。
 
 ## 错误处理与用户提示
 
@@ -97,4 +181,5 @@ npm run dev
 
 - 推荐部署至 Vercel，默认 Serverless 函数即可承载识别请求。
 - 生产环境需开启 HTTPS、请求限流与缓存策略，避免接口被滥用。
-- 若产品需要多端同步或更丰富的用户画像，可接入登录体系并替换持久化存储。
+- Supabase 提供自动备份、扩展性和实时功能，适合生产环境使用。
+- 监控数据库性能，设置适当的 RLS 策略确保数据安全。
