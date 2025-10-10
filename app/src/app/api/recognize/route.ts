@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { fishList } from "@/data/fish-list";
 
 const API_ENDPOINT = "https://api.siliconflow.cn/v1/chat/completions";
-const MODEL = "zai-org/GLM-4.5V";
+const MODEL = "Qwen/Qwen3-VL-30B-A3B-Instruct";
 
 function sanitizeContent(raw: string) {
   let trimmed = raw.trim();

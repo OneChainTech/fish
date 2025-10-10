@@ -1,6 +1,6 @@
 # 鱼眼 · 图鉴识鱼应用
 
-基于 Next.js 15 与 React 19 打造的移动优先 Web 应用，通过拍照识鱼、自动匹配图鉴并记录匿名收藏进度，帮助垂钓或自然爱好者构建个人水域图谱。识别能力由智谱多模态模型 **zai-org/GLM-4.5V** 提供，静态图鉴涵盖淡水与海水鱼类（含河豚、鲅鱼等常见品种）。
+基于 Next.js 15 与 React 19 打造的移动优先 Web 应用，通过拍照识鱼、自动匹配图鉴并记录匿名收藏进度，帮助垂钓或自然爱好者构建个人水域图谱。识别能力由 **Qwen/Qwen3-VL-30B-A3B-Instruct** 多模态模型提供，静态图鉴涵盖淡水与海水鱼类（含河豚、鲅鱼等常见品种）。
 
 ## 功能亮点
 
@@ -41,7 +41,7 @@ npm run dev
 
 | 变量 | 说明 |
 | ---- | ---- |
-| `SILICONFLOW_API_KEY` | 智谱 SiliconFlow 平台 API Key，用于访问 `zai-org/GLM-4.5V` 模型 |
+| `SILICONFLOW_API_KEY` | SiliconFlow 平台 API Key，用于访问 `Qwen/Qwen3-VL-30B-A3B-Instruct` 模型 |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名密钥 |
 
