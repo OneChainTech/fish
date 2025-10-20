@@ -15,8 +15,8 @@ export function AddToHomePrompt() {
   };
 
   return (
-    <div className="pointer-events-auto fixed inset-x-4 bottom-24 z-[60] rounded-2xl border border-sky-100 bg-white/95 p-4 shadow-lg backdrop-blur-md transition-all duration-300 md:inset-auto md:bottom-8 md:right-8 md:w-80">
-      <div className="flex items-start gap-3">
+    <div className="pointer-events-auto fixed inset-x-4 bottom-32 z-[60] rounded-2xl border border-sky-100 bg-white/95 p-4 shadow-lg backdrop-blur-md transition-all duration-300 md:inset-auto md:bottom-12 md:right-8 md:w-80">
+      <div className="relative flex items-start gap-3 pr-8">
         <div className="flex-1">
           <p className="text-sm font-medium text-slate-800">将应用添加到主屏幕 下次打开更快捷</p>
           <div className="mt-3 space-y-3">
@@ -53,7 +53,7 @@ export function AddToHomePrompt() {
         <button
           type="button"
           onClick={handleClose}
-          className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500 transition hover:bg-slate-200"
+          className="absolute right-0 top-0 inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500 transition hover:bg-slate-200"
           aria-label="关闭添加到主屏幕提示"
         >
           ×
