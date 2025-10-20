@@ -24,13 +24,13 @@ export function AddToHomePrompt() {
               <span className="font-medium text-sky-800">Chrome 浏览器：</span>
               打开右上角菜单，选择“添加到主屏幕”，按照提示确认即可完成安装。
             </div>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <figure className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-white/60 p-2 shadow-sm">
                 <Image
                   src="/pwa/s1.png"
                   alt="步骤 1：在 Chrome 右上角打开菜单"
-                  width={320}
-                  height={568}
+                  width={280}
+                  height={500}
                   className="h-auto w-full rounded-lg object-cover"
                   priority
                 />
@@ -40,8 +40,8 @@ export function AddToHomePrompt() {
                 <Image
                   src="/pwa/s2.png"
                   alt="步骤 2：选择添加到主屏幕并确认"
-                  width={320}
-                  height={568}
+                  width={280}
+                  height={500}
                   className="h-auto w-full rounded-lg object-cover"
                   priority
                 />
