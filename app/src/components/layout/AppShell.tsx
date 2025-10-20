@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { BottomNav } from "@/components/navigation/BottomNav";
 import { ClientBootstrap } from "@/components/layout/ClientBootstrap";
+import { BottomNav } from "@/components/navigation/BottomNav";
 import { useCollectionSync } from "@/hooks/useCollectionSync";
 import { navItems } from "@/components/navigation/navItems";
 import { useFishStore } from "@/store/useFishStore";
 import { cn } from "@/lib/utils";
+import { AddToHomePrompt } from "@/components/pwa/AddToHomePrompt";
 
 function CollectionSyncGate() {
   useCollectionSync();
@@ -68,6 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
         {children}
       </main>
+      <AddToHomePrompt />
       <BottomNav />
     </div>
   );
