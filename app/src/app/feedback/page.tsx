@@ -36,12 +36,14 @@ export default function FeedbackPage() {
   useEffect(() => {
     if (!isLoggedIn || !userId) return;
 
+    const activeUserId = userId;
+
     let cancelled = false;
     async function loadFeedback() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/user/feedback?userId=${encodeURIComponent(userId)}`);
+        const res = await fetch(`/api/user/feedback?userId=${encodeURIComponent(activeUserId)}`);
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data?.error || "获取反馈失败");
