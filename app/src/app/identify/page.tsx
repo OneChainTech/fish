@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
+import NextImage from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { RecognitionSummary } from "@/components/identify/RecognitionSummary";
 import { FishCarousel } from "@/components/identify/FishCarousel";
 import { useFishStore } from "@/store/useFishStore";
-import { CameraIcon, FeedbackIcon } from "@/components/ui/IconSet";
+import { CameraIcon } from "@/components/ui/IconSet";
 import { fishingTips } from "@/data/fishing-tips";
 import { fishList, type FishEntry } from "@/data/fish-list";
 import { compressImage } from "@/lib/imageCompression";
@@ -240,7 +240,7 @@ export default function IdentifyPage() {
                 </div>
                 {/* 预览图站位，直到轮播 ready，淡出 */}
                 {preview && (
-                  <Image
+                  <NextImage
                     src={preview}
                     alt="预览站位"
                     fill
@@ -267,7 +267,7 @@ export default function IdentifyPage() {
             ) : recognizedFish ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6">
               <div className="relative h-52 w-52 sm:h-60 sm:w-60">
-                <Image
+                <NextImage
                   src={recognizedFish.image}
                   alt={recognizedFish.name_cn}
                   fill
@@ -283,7 +283,7 @@ export default function IdentifyPage() {
               </div>
             </div>
           ) : preview ? (
-            <Image
+            <NextImage
               src={preview}
               alt="待识别鱼类"
               fill
@@ -336,9 +336,37 @@ export default function IdentifyPage() {
       <Link
         href="/feedback"
         aria-label="意见反馈入口"
-        className="fixed bottom-20 right-5 z-40 flex h-16 w-16 items-center justify-center text-sky-500 transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 active:scale-95"
+        draggable
+        className="group fixed right-0 z-40 flex translate-x-4 select-none items-center rounded-full bg-white pl-3 pr-1.5 shadow-lg shadow-slate-300/50 ring-1 ring-white/80 transition-[transform,box-shadow] duration-200 hover:translate-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 active:translate-x-0"
+        style={{ top: "calc(100vh - 220px)" }}
+        onDragStart={(event) => {
+          if (typeof window === "undefined" || !event.dataTransfer) return;
+          const placeholder = document.createElement("div");
+          placeholder.style.width = "1px";
+          placeholder.style.height = "1px";
+          event.dataTransfer.setDragImage(placeholder, 0, 0);
+        }}
+        onDrag={(event) => {
+          if (event.clientY <= 0 || typeof window === "undefined") return;
+          const container = event.currentTarget;
+          const viewportHeight = window.innerHeight;
+          const clampedTop = Math.min(
+            viewportHeight - 48,
+            Math.max(48, event.clientY),
+          );
+          container.style.top = `${clampedTop}px`;
+        }}
       >
-        <FeedbackIcon className="h-9 w-9 drop-shadow-[0_6px_10px_rgba(14,116,144,0.25)]" />
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-inner shadow-slate-200">
+          <NextImage
+            src="/icons/robotfish.png"
+            alt="意见反馈"
+            width={28}
+            height={28}
+            className="h-7 w-7"
+            priority
+          />
+        </span>
       </Link>
     </>
   );

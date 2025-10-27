@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ensureAdminAuthenticated } from "@/lib/admin-auth.server";
 import { getAllFeedback } from "@/lib/feedback-supabase";
 import { respondToFeedback } from "./actions";
+import { AdminReplyButton } from "@/components/admin/AdminReplyButton";
 
 export const metadata: Metadata = {
   title: "用户反馈管理",
@@ -32,9 +33,8 @@ export default async function AdminFeedbackPage() {
               className="space-y-4 rounded-2xl border border-slate-200 bg-white/85 px-5 py-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 text-sm text-slate-600">
+                <div className="text-sm text-slate-600">
                   <p className="font-semibold text-slate-900">用户 {item.user_id}</p>
-                  <p className="text-xs text-slate-400">反馈 ID：{item.id}</p>
                 </div>
                 <span
                   className={`rounded-full px-2 py-[2px] text-[11px] font-medium ${
@@ -64,12 +64,7 @@ export default async function AdminFeedbackPage() {
                     placeholder="输入要发送的回复，最多 300 字"
                   />
                   <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      className="inline-flex items-center rounded-md bg-sky-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-sky-700"
-                    >
-                      保存回复
-                    </button>
+                    <AdminReplyButton />
                   </div>
                 </form>
               </div>

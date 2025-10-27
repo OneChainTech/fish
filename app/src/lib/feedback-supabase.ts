@@ -110,3 +110,17 @@ export async function countUserFeedback(userId: string): Promise<number> {
 
   return count ?? 0;
 }
+
+export async function deleteUserFeedback(userId: string, feedbackId: string): Promise<void> {
+  const client = adminClient;
+  const { error } = await client
+    .from("user_feedback")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", feedbackId);
+
+  if (error) {
+    console.error("删除用户反馈失败", error);
+    throw error;
+  }
+}

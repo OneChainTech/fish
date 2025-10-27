@@ -3,6 +3,7 @@ import {
   countUserFeedback,
   createUserFeedback,
   getUserFeedback,
+  deleteUserFeedback,
 } from "@/lib/feedback-supabase";
 
 function validateContent(content: unknown): string | null {
@@ -60,5 +61,22 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("保存用户反馈失败", error);
     return Response.json({ error: "保存反馈失败" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const userId = req.nextUrl.searchParams.get("userId");
+  const feedbackId = req.nextUrl.searchParams.get("feedbackId");
+
+  if (!userId || !feedbackId) {
+    return Response.json({ error: "缺少参数" }, { status: 400 });
+  }
+
+  try {
+    await deleteUserFeedback(userId, feedbackId);
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error("删除反馈失败", error);
+    return Response.json({ error: "删除反馈失败" }, { status: 500 });
   }
 }

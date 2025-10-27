@@ -4,6 +4,7 @@ import { ensureAdminAuthenticated, logoutAdmin } from "@/lib/admin-auth.server";
 import { getUsageStats } from "@/lib/admin-stats";
 import { getAllFeedback } from "@/lib/feedback-supabase";
 import { respondToFeedback } from "../feedback/actions";
+import { AdminReplyButton } from "@/components/admin/AdminReplyButton";
 
 export const metadata: Metadata = {
   title: "应用监控面板",
@@ -162,10 +163,7 @@ export default async function MonitorPage() {
                 className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 px-4 py-4 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="text-sm text-slate-600">
-                    <p className="font-semibold text-slate-900">用户 {item.user_id}</p>
-                    <p className="text-xs text-slate-400">反馈 ID：{item.id}</p>
-                  </div>
+                  <p className="text-sm font-semibold text-slate-900">用户 {item.user_id}</p>
                   <span
                     className={`rounded-full px-2 py-[2px] text-[11px] font-medium ${
                       item.reply_content ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
@@ -193,20 +191,9 @@ export default async function MonitorPage() {
                     placeholder="输入要发送给用户的回复内容"
                   />
                   <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-sky-700"
-                    >
-                      保存
-                    </button>
+                    <AdminReplyButton className="rounded-full px-4 py-2" />
                   </div>
                 </form>
-
-                {item.reply_content && (
-                  <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                    <p className="whitespace-pre-wrap">{item.reply_content}</p>
-                  </div>
-                )}
               </article>
             ))}
           </div>

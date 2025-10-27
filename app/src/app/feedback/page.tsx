@@ -110,6 +110,24 @@ export default function FeedbackPage() {
     }
   };
 
+  const handleDelete = async (feedbackId: string) => {
+    if (!isLoggedIn || !userId) return;
+
+    try {
+      const response = await fetch(
+        `/api/user/feedback?userId=${encodeURIComponent(userId)}&feedbackId=${encodeURIComponent(feedbackId)}`,
+        { method: "DELETE" },
+      );
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || "删除反馈失败，请稍后再试。");
+      }
+      await loadFeedback({ withLoading: false });
+    } catch (err) {
+      setFeedbackError(err instanceof Error ? err.message : "删除反馈失败，请稍后再试。");
+    }
+  };
+
   if (!isLoggedIn || !userId) {
     return (
       <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-6">
@@ -202,33 +220,46 @@ export default function FeedbackPage() {
       )}
 
       {records.length > 0 && (
-        <div className="rounded-md border border-slate-200 bg-white">
-          <ul className="divide-y divide-slate-200">
-            {records.map((item) => (
-              <li key={item.id} className="space-y-3 px-4 py-4 text-sm text-slate-700">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="font-medium text-slate-900">反馈内容</span>
-                  <span
-                    className={`rounded-full px-2 py-[2px] text-[11px] font-medium ${
-                      item.reply_content ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
-                    }`}
-                  >
-                    {item.reply_content ? "已回复" : "待处理"}
-                  </span>
-                </div>
-                <p className="whitespace-pre-wrap leading-relaxed">{item.content}</p>
-                <div className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                  {item.reply_content ? (
-                    <>
-                      <p className="whitespace-pre-wrap text-slate-700">{item.reply_content}</p>
-                    </>
-                  ) : (
-                    <p>管理员收到后会尽快回复，请耐心等待。</p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+        <div className="space-y-3">
+          {records.map((item) => (
+            <article
+              key={item.id}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-700 shadow-sm"
+            >
+              <header className="flex items-start justify-between gap-3">
+                <span
+                  className={`inline-flex h-3 w-3 rounded-full ${
+                    item.reply_content ? "bg-emerald-500" : "bg-amber-400"
+                  }`}
+                  role="status"
+                  aria-label={item.reply_content ? "已回复" : "待处理"}
+                  title={item.reply_content ? "已回复" : "待处理"}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleDelete(item.id)}
+                  className="text-[11px] text-slate-400 underline underline-offset-2 transition hover:text-slate-600"
+                >
+                  关闭反馈
+                </button>
+              </header>
+
+              <section className="mt-4">
+                <p className="whitespace-pre-wrap rounded-lg bg-slate-50 px-3 py-3 leading-relaxed text-slate-800">
+                  {item.content}
+                </p>
+              </section>
+
+              {item.reply_content && (
+                <section className="mt-4 space-y-2">
+                  <p className="text-xs font-medium text-slate-500">管理员回复</p>
+                  <p className="whitespace-pre-wrap rounded-lg bg-emerald-50 px-3 py-3 text-slate-700">
+                    {item.reply_content}
+                  </p>
+                </section>
+              )}
+            </article>
+          ))}
         </div>
       )}
     </section>
