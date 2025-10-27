@@ -294,7 +294,7 @@ export default function IdentifyPage() {
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-slate-600">
-                <CameraIcon className="h-6 w-6" />
+                <CameraIcon className="h-8 w-8" />
               </div>
               <p className="text-sm text-slate-600">拍摄后将自动开始识别</p>
             </div>
@@ -337,7 +337,7 @@ export default function IdentifyPage() {
         href="/feedback"
         aria-label="意见反馈入口"
         draggable
-        className="group fixed right-0 z-40 flex translate-x-4 select-none items-center rounded-full bg-white pl-3 pr-1.5 shadow-lg shadow-slate-300/50 ring-1 ring-white/80 transition-[transform,box-shadow] duration-200 hover:translate-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 active:translate-x-0"
+        className="group fixed right-0 z-40 flex translate-x-4 select-none items-center rounded-full bg-white pl-2 pr-1.5 shadow-lg shadow-slate-300/50 ring-1 ring-white/80 transition-[transform,box-shadow] duration-200 hover:translate-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 active:translate-x-0"
         style={{ top: "calc(100vh - 220px)" }}
         onDragStart={(event) => {
           if (typeof window === "undefined" || !event.dataTransfer) return;
@@ -357,13 +357,13 @@ export default function IdentifyPage() {
           container.style.top = `${clampedTop}px`;
         }}
       >
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-inner shadow-slate-200">
+        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-transparent">
           <NextImage
             src="/icons/robotfish.png"
             alt="意见反馈"
             width={28}
             height={28}
-            className="h-7 w-7"
+            className="h-8 w-8"
             priority
           />
         </span>
