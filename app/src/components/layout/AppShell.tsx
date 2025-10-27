@@ -21,6 +21,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const resolvedPath = !pathname || pathname === "/" ? "/encyclopedia" : pathname;
   const isLoggedIn = useFishStore((state) => state.isLoggedIn);
   const userPhone = useFishStore((state) => state.userPhone);
+  const isAdminRoute = pathname?.startsWith("/admin");
+
+  if (isAdminRoute) {
+    return (
+      <div className="flex min-h-screen flex-col bg-slate-100 text-slate-900">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-slate-100 via-white to-slate-100 text-slate-900">
