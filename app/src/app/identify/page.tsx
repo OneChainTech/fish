@@ -338,7 +338,7 @@ export default function IdentifyPage() {
         aria-label="意见反馈入口"
         draggable
         className="group fixed right-0 z-40 flex translate-x-4 select-none items-center rounded-full bg-white pl-2 pr-1.5 shadow-lg shadow-slate-300/50 ring-1 ring-white/80 transition-[transform,box-shadow] duration-200 hover:translate-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 active:translate-x-0"
-        style={{ top: "calc(100vh - 260px)" }}
+        style={{ top: "calc(50vh - 24px)" }}
         onDragStart={(event) => {
           if (typeof window === "undefined" || !event.dataTransfer) return;
           const placeholder = document.createElement("div");
