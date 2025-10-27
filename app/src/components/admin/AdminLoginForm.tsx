@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { authenticateAdmin } from "@/lib/admin-auth.server";
 
 import type { AdminLoginState } from "@/lib/admin-auth";
@@ -8,7 +8,7 @@ import type { AdminLoginState } from "@/lib/admin-auth";
 const INITIAL_STATE: AdminLoginState = {};
 
 export function AdminLoginForm() {
-  const [state, formAction, pending] = useFormState(authenticateAdmin, INITIAL_STATE);
+  const [state, formAction, pending] = useActionState(authenticateAdmin, INITIAL_STATE);
 
   return (
     <form
