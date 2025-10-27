@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { isAdminAuthenticated } from "@/lib/admin-auth.server";
 
 export const metadata: Metadata = {
   title: "管理员登录",
 };
 
-export default function AdminLoginPage() {
-  if (isAdminAuthenticated()) {
+export default async function AdminLoginPage() {
+  if (await isAdminAuthenticated()) {
     redirect("/admin/monitor");
   }
 

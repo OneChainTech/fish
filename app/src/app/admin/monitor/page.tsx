@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ensureAdminAuthenticated, logoutAdmin } from "@/lib/admin-auth";
+import { ensureAdminAuthenticated, logoutAdmin } from "@/lib/admin-auth.server";
 import { getUsageStats } from "@/lib/admin-stats";
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ function formatTime(value: string | null) {
 }
 
 export default async function MonitorPage() {
-  ensureAdminAuthenticated();
+  await ensureAdminAuthenticated();
   const stats = await getUsageStats();
 
   return (
