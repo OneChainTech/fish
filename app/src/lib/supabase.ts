@@ -27,3 +27,12 @@ export interface UserMark {
   recorded_at: string
   created_at: string
 }
+
+export interface UserFeedback {
+  id: string
+  user_id: string
+  content: string
+  reply_content: string | null
+  created_at: string
+  replied_at: string | null
+}

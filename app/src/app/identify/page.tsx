@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { RecognitionSummary } from "@/components/identify/RecognitionSummary";
 import { FishCarousel } from "@/components/identify/FishCarousel";
@@ -23,6 +24,7 @@ type RecognitionResponse = {
 
 export default function IdentifyPage() {
   const isLoggedIn = useFishStore((s) => s.isLoggedIn);
+  const userId = useFishStore((s) => s.userId);
   const router = useRouter();
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -34,6 +36,11 @@ export default function IdentifyPage() {
   const [showCarousel, setShowCarousel] = useState(false);
   const [carouselReady, setCarouselReady] = useState(false);
   const [recognizedFish, setRecognizedFish] = useState<FishEntry | null>(null);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackContent, setFeedbackContent] = useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading) {
@@ -204,6 +211,63 @@ export default function IdentifyPage() {
     await recognizeImage(preview, mimeType);
   };
 
+  const handleToggleFeedback = () => {
+    if (!isLoggedIn) {
+      router.push("/account");
+      return;
+    }
+    setIsFeedbackOpen((prev) => !prev);
+    setFeedbackError(null);
+    setFeedbackMessage(null);
+  };
+
+  const handleFeedbackSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!isLoggedIn) {
+      router.push("/account");
+      return;
+    }
+
+    if (!userId) {
+      setFeedbackError("请重新登录后再试。");
+      return;
+    }
+
+    const trimmed = feedbackContent.trim();
+    if (!trimmed) {
+      setFeedbackError("请输入反馈内容。");
+      return;
+    }
+
+    setFeedbackSubmitting(true);
+    setFeedbackError(null);
+    setFeedbackMessage(null);
+
+    try {
+      const response = await fetch("/api/user/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, content: trimmed }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || "提交反馈失败，请稍后再试。");
+      }
+
+      setFeedbackMessage("反馈已提交，我们会尽快处理。");
+      setFeedbackContent("");
+      setIsFeedbackOpen(false);
+    } catch (err) {
+      setFeedbackError(err instanceof Error ? err.message : "提交反馈失败，请稍后重试。");
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
+
+  const feedbackRemaining = Math.max(0, 300 - feedbackContent.length);
+
   return (
     <section className="flex flex-1 flex-col gap-6 pb-6">
       <header className="space-y-2">
@@ -330,6 +394,78 @@ export default function IdentifyPage() {
       </form>
 
       <RecognitionSummary result={result} isLoading={isLoading} pendingTip={currentTip} />
+
+      <section className="space-y-4 rounded-3xl border border-slate-200 bg-white/90 px-5 py-5 shadow-sm">
+        <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">意见反馈</h2>
+            <p className="text-xs text-slate-500">欢迎将问题与建议告诉我们，管理员将在反馈页回复。</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/feedback"
+              className="rounded-full border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 transition hover:border-sky-300 hover:text-sky-600"
+            >
+              查看我的反馈
+            </Link>
+            <button
+              type="button"
+              onClick={handleToggleFeedback}
+              className="rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-sky-700"
+            >
+              {isFeedbackOpen ? "收起" : "我要反馈"}
+            </button>
+          </div>
+        </header>
+
+        {feedbackMessage && (
+          <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-600">
+            {feedbackMessage} 可前往<Link href="/feedback" className="ml-1 underline">用户反馈</Link>页面查看处理进度。
+          </p>
+        )}
+
+        {feedbackError && (
+          <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">{feedbackError}</p>
+        )}
+
+        {isFeedbackOpen && (
+          <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+            <label className="block text-sm font-medium text-slate-700" htmlFor="feedback-content">
+              反馈内容
+            </label>
+            <textarea
+              id="feedback-content"
+              name="feedback"
+              rows={4}
+              value={feedbackContent}
+              maxLength={300}
+              onChange={(event) => {
+                const value = event.target.value.slice(0, 300);
+                setFeedbackContent(value);
+                if (feedbackError) {
+                  setFeedbackError(null);
+                }
+              }}
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+              placeholder="请详细描述遇到的问题或建议（最多 300 字）"
+            />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs text-slate-500">还可输入 {feedbackRemaining} 字</span>
+              <button
+                type="submit"
+                disabled={feedbackSubmitting}
+                className="rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                {feedbackSubmitting ? "提交中..." : "提交反馈"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        <p className="text-xs text-slate-500">
+          提交后可在<Link href="/feedback" className="ml-1 text-sky-600 underline">用户反馈页面</Link>查看回复结果。
+        </p>
+      </section>
       {/* 邮箱入口已移除 */}
     </section>
   );
