@@ -130,7 +130,7 @@ export default function FeedbackPage() {
 
   if (!isLoggedIn || !userId) {
     return (
-      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-4 py-4">
+      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-3 py-4 sm:px-6">
         <header className="space-y-1.5">
           <h1 className="text-2xl font-semibold text-slate-900">我的反馈</h1>
           <p className="text-sm text-slate-500">登录后即可提交反馈并查看历史处理进度。</p>
@@ -152,23 +152,23 @@ export default function FeedbackPage() {
   const canSubmit = records.length < maxFeedback;
 
   return (
-    <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-4">
+    <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-3 py-4 sm:px-6">
       <header className="space-y-1.5">
         <h1 className="text-2xl font-semibold text-slate-900">我的反馈</h1>
         <p className="text-sm text-slate-500">反馈记录与管理员回复将同步显示在此页面。</p>
       </header>
 
       {feedbackMessage && (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
+        <p className="rounded-2xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
           {feedbackMessage} 可在下方列表查看处理进度。
         </p>
       )}
 
       {feedbackError && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-600">{feedbackError}</p>
+        <p className="rounded-2xl bg-red-50 px-4 py-2.5 text-sm text-red-600">{feedbackError}</p>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4" noValidate>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl bg-white/95 px-4 py-5" noValidate>
         <div className="relative">
           <textarea
             id="feedback-content"
@@ -204,17 +204,17 @@ export default function FeedbackPage() {
       </form>
 
       {loading && (
-        <p className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-center text-sm text-slate-500">
+        <p className="rounded-2xl bg-white/95 px-4 py-3 text-center text-sm text-slate-500">
           正在加载反馈...
         </p>
       )}
 
       {error && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">{error}</p>
+        <p className="rounded-2xl bg-red-50 px-4 py-3 text-center text-sm text-red-600">{error}</p>
       )}
 
       {!loading && !error && records.length === 0 && (
-        <p className="rounded-lg border border-slate-200 bg-white px-4 py-10 text-center text-base text-slate-500">
+        <p className="rounded-2xl bg-white/95 px-4 py-10 text-center text-base text-slate-500">
           暂无反馈记录。
         </p>
       )}
@@ -224,7 +224,7 @@ export default function FeedbackPage() {
           {records.map((item) => (
             <article
               key={item.id}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base text-slate-700 shadow-sm"
+              className="rounded-3xl bg-white/95 px-5 py-5 text-base text-slate-700"
             >
               <header className="flex items-start justify-between gap-3">
                 <span
