@@ -30,4 +30,5 @@ export async function respondToFeedback(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/admin/feedback");
+  revalidatePath("/admin/monitor");
 }
