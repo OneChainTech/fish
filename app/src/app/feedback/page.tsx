@@ -192,7 +192,7 @@ export default function FeedbackPage() {
         <button
           type="submit"
           disabled={!canSubmit || submitting}
-          className="inline-flex items-center justify-center rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {submitting ? "提交中..." : canSubmit ? "提交反馈" : "请等待处理"}
         </button>
