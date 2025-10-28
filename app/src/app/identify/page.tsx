@@ -330,22 +330,24 @@ export default function IdentifyPage() {
 
           {/* 操作按钮 */}
           <div className="space-y-3">
-            <button
-              type="button"
-              onClick={handleOpenCamera}
-              disabled={isLoading}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
-            >
-              {isLoading ? "正在识别..." : "拍照识别"}
-            </button>
-            <button
-              type="button"
-              onClick={handleOpenUpload}
-              disabled={isLoading}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-sky-600 bg-white text-sky-600 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-300"
-            >
-              {isLoading ? "正在识别..." : "上传图片"}
-            </button>
+            {!isLoading && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleOpenCamera}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 text-white transition active:scale-[0.98]"
+                >
+                  拍照识别
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOpenUpload}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-sky-600 bg-white text-sky-600 transition active:scale-[0.98]"
+                >
+                  上传图片
+                </button>
+              </>
+            )}
             
             {error && (
               <div
