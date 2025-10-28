@@ -135,7 +135,7 @@ export default function FeedbackPage() {
           <h1 className="text-2xl font-semibold text-slate-900">我的反馈</h1>
           <p className="text-sm text-slate-500">登录后即可提交反馈并查看历史处理进度。</p>
         </header>
-        <div className="rounded-xl border border-slate-200 px-4 py-7 text-center text-base text-slate-600">
+        <div className="border border-slate-200 px-4 py-7 text-center text-base text-slate-600">
           <p>暂未登录，无法查看反馈记录。</p>
           <button
             type="button"
@@ -159,13 +159,13 @@ export default function FeedbackPage() {
       </header>
 
       {feedbackMessage && (
-        <p className="rounded-3xl border border-emerald-100 bg-emerald-50 px-6 py-4 text-sm text-emerald-700 shadow-sm">
+        <p className="border border-emerald-100 bg-emerald-50 px-6 py-4 text-sm text-emerald-700 shadow-sm">
           {feedbackMessage} 可在下方列表查看处理进度。
         </p>
       )}
 
       {feedbackError && (
-        <p className="rounded-3xl border border-red-100 bg-red-50 px-6 py-4 text-sm text-red-600 shadow-sm">
+        <p className="border border-red-100 bg-red-50 px-6 py-4 text-sm text-red-600 shadow-sm">
           {feedbackError}
         </p>
       )}
@@ -188,7 +188,7 @@ export default function FeedbackPage() {
               if (feedbackError) setFeedbackError(null);
             }}
             disabled={!canSubmit || submitting}
-            className="w-full min-h-[220px] resize-none rounded-2xl border border-slate-200 px-5 pb-12 pr-32 text-base text-slate-800 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+            className="w-full min-h-[220px] resize-none border border-slate-200 px-5 pb-12 pr-32 text-base text-slate-800 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
             placeholder="请描述遇到的问题或建议，最多 300 字"
           />
           <span className="pointer-events-none absolute bottom-3 right-5 text-xs text-slate-400">
@@ -198,7 +198,7 @@ export default function FeedbackPage() {
         <button
           type="submit"
           disabled={!canSubmit || submitting}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-sky-600 text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="flex h-12 w-full items-center justify-center gap-2 bg-sky-600 text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {submitting ? "提交中..." : canSubmit ? "提交反馈" : "请等待处理"}
         </button>
@@ -210,19 +210,19 @@ export default function FeedbackPage() {
       </form>
 
       {loading && (
-        <p className="rounded-3xl border border-white/70 bg-white/95 px-6 py-4 text-center text-sm text-slate-500">
+        <p className="border border-white/70 bg-white/95 px-6 py-4 text-center text-sm text-slate-500">
           正在加载反馈...
         </p>
       )}
 
       {error && (
-        <p className="rounded-3xl border border-red-100 bg-red-50 px-6 py-4 text-center text-sm text-red-600">
+        <p className="border border-red-100 bg-red-50 px-6 py-4 text-center text-sm text-red-600">
           {error}
         </p>
       )}
 
       {!loading && !error && records.length === 0 && (
-        <p className="rounded-3xl border border-white/70 bg-white/95 px-6 py-12 text-center text-base text-slate-500">
+        <p className="border border-white/70 bg-white/95 px-6 py-12 text-center text-base text-slate-500">
           暂无反馈记录。
         </p>
       )}
@@ -232,7 +232,7 @@ export default function FeedbackPage() {
           {records.map((item) => (
             <article
               key={item.id}
-              className="rounded-3xl border border-white/70 bg-white/95 px-7 py-7 text-base text-slate-700 shadow-sm"
+              className="border border-white/70 bg-white/95 px-7 py-7 text-base text-slate-700 shadow-sm"
             >
               <header className="flex items-start justify-between gap-3">
                 <span
@@ -253,7 +253,7 @@ export default function FeedbackPage() {
               </header>
 
               <section className="mt-4">
-                <p className="whitespace-pre-wrap rounded-xl bg-slate-50 px-4 py-4 leading-relaxed text-slate-800">
+                <p className="whitespace-pre-wrap bg-slate-50 px-4 py-4 leading-relaxed text-slate-800">
                   {item.content}
                 </p>
               </section>
@@ -261,7 +261,7 @@ export default function FeedbackPage() {
               {item.reply_content && (
                 <section className="mt-4 space-y-2">
                   <p className="text-sm font-medium text-slate-500">管理员回复</p>
-                  <p className="whitespace-pre-wrap rounded-xl bg-emerald-50 px-4 py-4 text-slate-700">
+                  <p className="whitespace-pre-wrap bg-emerald-50 px-4 py-4 text-slate-700">
                     {item.reply_content}
                   </p>
                 </section>
