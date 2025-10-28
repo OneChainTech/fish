@@ -60,6 +60,7 @@ export default async function AdminFeedbackPage() {
                     name="reply"
                     rows={3}
                     defaultValue={item.reply_content ?? ""}
+                    style={{ fontSize: "16px" }}
                     className="w-full resize-none rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                     placeholder="输入要发送的回复，最多 300 字"
                   />
