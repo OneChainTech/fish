@@ -188,6 +188,7 @@ export default function FeedbackPage() {
               if (feedbackError) setFeedbackError(null);
             }}
             disabled={!canSubmit || submitting}
+            style={{ fontSize: "16px" }}
             className="w-full min-h-[220px] resize-none border border-slate-200 px-5 pb-12 pr-32 text-base text-slate-800 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
             placeholder="请描述遇到的问题或建议，最多 300 字"
           />

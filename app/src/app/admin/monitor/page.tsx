@@ -69,6 +69,7 @@ export default async function MonitorPage() {
                     name="reply"
                     rows={3}
                     defaultValue={item.reply_content ?? ""}
+                    style={{ fontSize: "16px" }}
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                     placeholder="输入要发送给用户的回复内容"
                   />
