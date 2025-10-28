@@ -26,6 +26,7 @@ export default function IdentifyPage() {
   const isLoggedIn = useFishStore((s) => s.isLoggedIn);
   const router = useRouter();
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -183,6 +184,9 @@ export default function IdentifyPage() {
       if (cameraInputRef.current) {
         cameraInputRef.current.value = "";
       }
+      if (uploadInputRef.current) {
+        uploadInputRef.current.value = "";
+      }
     }
   };
 
@@ -192,6 +196,14 @@ export default function IdentifyPage() {
       return;
     }
     cameraInputRef.current?.click();
+  };
+
+  const handleOpenUpload = () => {
+    if (!isLoggedIn) {
+      router.push("/account");
+      return;
+    }
+    uploadInputRef.current?.click();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -211,7 +223,7 @@ export default function IdentifyPage() {
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold">识鱼</h1>
           <p className="text-xs text-slate-500">
-            拍摄清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
+            拍摄或上传清晰图片，智能识别鱼类并同步解锁我的专属图鉴。
           </p>
         </header>
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -296,7 +308,7 @@ export default function IdentifyPage() {
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-slate-600">
                 <CameraIcon className="h-8 w-8" />
               </div>
-              <p className="text-sm text-slate-600">拍摄后将自动开始识别</p>
+              <p className="text-sm text-slate-600">拍摄或上传后将自动开始识别</p>
             </div>
           )}
             <input
@@ -304,6 +316,13 @@ export default function IdentifyPage() {
               type="file"
               accept="image/*"
               capture="environment"
+              className="hidden"
+              onChange={(event) => handleFileSelect(event.target.files?.[0] ?? null)}
+            />
+            <input
+              ref={uploadInputRef}
+              type="file"
+              accept="image/*"
               className="hidden"
               onChange={(event) => handleFileSelect(event.target.files?.[0] ?? null)}
             />
@@ -318,6 +337,14 @@ export default function IdentifyPage() {
               className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               {isLoading ? "正在识别..." : "拍照识别"}
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenUpload}
+              disabled={isLoading}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-sky-600 bg-white text-sky-600 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-300"
+            >
+              {isLoading ? "正在识别..." : "上传图片"}
             </button>
             
             {error && (
