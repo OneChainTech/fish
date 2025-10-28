@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AppShell } from "@/components/layout/AppShell";
 import { PWAInstaller } from "@/components/PWAInstaller";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className="bg-slate-50 text-slate-900">
         <PWAInstaller />
         <AppShell>{children}</AppShell>
+        <SpeedInsights />
       </body>
     </html>
   );
